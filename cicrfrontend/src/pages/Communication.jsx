@@ -754,15 +754,15 @@ export default function Communication() {
     dispatchToast('Offline: message queued and will auto-send.', 'warning');
   };
 
+  useEffect(() => {
+    return () => {
+      emitTyping(false);
+    };
+  }, [emitTyping]);
+
   const send = async (e) => {
     e.preventDefault();
     if (!canSend) return;
-  
-    useEffect(() => {
-      return () => {
-        emitTyping(false);
-      };
-    }, [emitTyping]);
 
     const command = parseSlashCommand(text);
     if (command.type === 'help') {
