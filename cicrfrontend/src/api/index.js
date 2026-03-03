@@ -2,7 +2,9 @@ import axios from 'axios';
 
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://cicrcombined.onrender.com/api',
+  // baseURL: import.meta.env.VITE_API_BASE_URL || 'https://cicrcombined.onrender.com/api',
+  // timeout: 20000,
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
   timeout: 20000,
 
   headers: {

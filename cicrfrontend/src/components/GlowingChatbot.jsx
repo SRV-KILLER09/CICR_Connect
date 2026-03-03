@@ -1,267 +1,208 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, ChevronDown, ExternalLink, Loader2, MessageCircle, Send, Sparkles, X, ArrowRight, Zap } from 'lucide-react';
+import { ExternalLink, Loader2, Send, X, Zap, MessageCircle, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { askCicrAssistant } from '../api';
 
-/* ─── Quick suggestion chips shown at start ─── */
-const QUICK_SUGGESTIONS = [
-  { label: '📊 Dashboard overview', question: 'What can I see on the dashboard?' },
-  { label: '🚀 Create a project', question: 'How do I create a new project?' },
-  { label: '📅 Schedule meeting', question: 'How can I schedule a meeting?' },
-  { label: '📦 Browse inventory', question: 'Show me the hardware inventory' },
-  { label: '🎓 Learning tracks', question: 'What learning resources are available?' },
-  { label: '🏆 Programs & quests', question: 'Tell me about programs, quests and badges' },
-  { label: '👥 Community feed', question: 'How does the community section work?' },
-  { label: '🎪 Upcoming events', question: 'What events are happening?' },
-  { label: '🧭 Navigate anywhere', question: 'Show me all pages I can visit' },
+/* AI brain-circuit icon for the FAB */
+function AiBrainIcon({ size = 24, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {/* brain outline */}
+      <path d="M12 3c-1.8 0-3.4.8-4.4 2A5 5 0 0 0 3 10c0 1.7.8 3.2 2 4.2-.2.6-.3 1.2-.3 1.8a5 5 0 0 0 3.5 4.8c.8.5 1.8.7 2.8.7V3Z"
+        fill="url(#aiBrainL)" opacity="0.85" />
+      <path d="M12 3c1.8 0 3.4.8 4.4 2A5 5 0 0 1 21 10c0 1.7-.8 3.2-2 4.2.2.6.3 1.2.3 1.8a5 5 0 0 1-3.5 4.8c-.8.5-1.8.7-2.8.7V3Z"
+        fill="url(#aiBrainR)" opacity="0.85" />
+      {/* circuit nodes */}
+      <circle cx="9" cy="9" r="1.2" fill="#fff" />
+      <circle cx="15" cy="9" r="1.2" fill="#fff" />
+      <circle cx="12" cy="14" r="1.2" fill="#fff" />
+      {/* circuit lines */}
+      <line x1="9" y1="9" x2="12" y2="14" stroke="#fff" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
+      <line x1="15" y1="9" x2="12" y2="14" stroke="#fff" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
+      <line x1="9" y1="9" x2="15" y2="9" stroke="#fff" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
+      <defs>
+        <linearGradient id="aiBrainL" x1="3" y1="3" x2="12" y2="21">
+          <stop offset="0%" stopColor="#818cf8" />
+          <stop offset="100%" stopColor="#6366f1" />
+        </linearGradient>
+        <linearGradient id="aiBrainR" x1="12" y1="3" x2="21" y2="21">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="100%" stopColor="#06b6d4" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+/* hard-coded inline styles → nothing can override */
+const FAB_STYLE = {
+  position: 'fixed',
+  bottom: 24,
+  right: 24,
+  zIndex: 99999,
+  width: 56,
+  height: 56,
+  borderRadius: '50%',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const PANEL_STYLE = {
+  position: 'fixed',
+  bottom: 16,
+  right: 16,
+  zIndex: 99999,
+};
+
+const SUGGESTIONS = [
+  { label: 'Dashboard overview', q: 'Give me an overview of the dashboard and what I can do there' },
+  { label: 'Create a project', q: 'Walk me through creating a new project step by step' },
+  { label: 'Schedule meeting', q: 'How do I schedule a new meeting?' },
+  { label: 'Browse inventory', q: 'What is the inventory section and how do I use it?' },
+  { label: 'Learning resources', q: 'What learning tracks and resources are available?' },
+  { label: 'Programs & quests', q: 'Explain the programs hub — quests, badges, mentor desk, office hours' },
+  { label: 'Upcoming events', q: 'What events are coming up and how do I participate?' },
+  { label: 'All pages', q: 'List every page and feature I can access on CICR Connect with links' },
 ];
 
-/* ─── Parse markdown-lite for bot messages ─── */
-function parseMessageContent(text) {
-  if (!text) return text;
-  // Bold
-  let parsed = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // Bullet lists
-  parsed = parsed.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
-  parsed = parsed.replace(/(<li>.*<\/li>\n?)+/g, (match) => `<ul class="chatbot-list">${match}</ul>`);
-  // Line breaks
-  parsed = parsed.replace(/\n/g, '<br/>');
-  return parsed;
+/* lightweight markdown → html */
+function md(text) {
+  if (!text) return '';
+  let s = text;
+  s = s.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="cb-code"><code>$2</code></pre>');
+  s = s.replace(/`([^`]+)`/g, '<code class="cb-inline-code">$1</code>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+  s = s.replace(/^\d+\.\s+(.+)$/gm, '<li class="cb-oli">$1</li>');
+  s = s.replace(/^[-•]\s+(.+)$/gm, '<li class="cb-li">$1</li>');
+  s = s.replace(/(<li class="cb-(?:li|oli)">[\s\S]*?<\/li>(?:\n|<br\/?>)?)+/g, (m) => `<ul class="cb-list">${m}</ul>`);
+  s = s.replace(/\n/g, '<br/>');
+  return s;
 }
 
 export default function GlowingChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      role: 'bot',
-      text: "Hey! I'm your CICR Connect Assistant ✨\n\nI can help you navigate anywhere, answer questions, find features, and guide you through everything on the platform. Ask me anything!",
-      navigation: [],
-      actions: [],
-    },
+  const [busy, setBusy] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [msgs, setMsgs] = useState([
+    { role: 'bot', text: "Hey there! I'm your **CICR Connect Assistant**.\n\nAsk me anything — navigate pages, learn features, get stats, or just explore. I'm here for it all.", nav: [], acts: [] },
   ]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [pulseCount, setPulseCount] = useState(0);
-  const messagesEndRef = useRef(null);
+  const endRef = useRef(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, typing]);
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 280); }, [open]);
 
-  // Focus input when opened
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 300);
-    }
-  }, [isOpen]);
+  const go = useCallback((path) => { if (path) { navigate(path); setOpen(false); } }, [navigate]);
 
-  // Pulse animation for the floating button
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulseCount((prev) => prev + 1);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleNavigate = useCallback(
-    (path) => {
-      if (!path) return;
-      navigate(path);
-      setIsOpen(false);
-    },
-    [navigate]
-  );
-
-  const handleSend = async (questionOverride) => {
-    const question = (questionOverride || input).trim();
-    if (!question || loading) return;
-
-    setMessages((prev) => [...prev, { role: 'user', text: question }]);
+  const send = async (override) => {
+    const q = (override || input).trim();
+    if (!q || busy) return;
+    setMsgs((p) => [...p, { role: 'user', text: q }]);
     setInput('');
-    setLoading(true);
-    setIsTyping(true);
-
+    setBusy(true);
+    setTyping(true);
     try {
-      const { data } = await askCicrAssistant({ question });
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'bot',
-          text: data.answer || 'I couldn\'t generate a response. Please try again!',
-          navigation: data.navigation || [],
-          actions: data.actions || [],
-        },
-      ]);
+      const { data } = await askCicrAssistant({ question: q });
+      setTyping(false);
+      setMsgs((p) => [...p, { role: 'bot', text: data.answer || 'Hmm, I didn\'t get a response. Try rephrasing?', nav: data.navigation || [], acts: data.actions || [] }]);
     } catch (err) {
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'bot',
-          text: err.response?.data?.answer || err.response?.data?.message || 'Something went wrong. Please try again!',
-          navigation: [],
-          actions: [],
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+      setTyping(false);
+      setMsgs((p) => [...p, { role: 'bot', text: err.response?.data?.answer || err.response?.data?.message || 'Something went wrong — please try again.', nav: [], acts: [] }]);
+    } finally { setBusy(false); }
   };
 
-  const showSuggestions = messages.length <= 1 && !loading;
+  const fresh = msgs.length <= 1 && !busy;
 
-  return (
+  return createPortal(
     <>
-      {/* ─── Floating Action Button ─── */}
+      {/* ── floating icon ── */}
       <AnimatePresence>
-        {!isOpen && (
+        {!open && (
           <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-[100] group"
+            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+            whileHover={{ scale: 1.08 }}
+            onClick={() => setOpen(true)}
+            style={FAB_STYLE}
+            className="cb-fab"
             aria-label="Open CICR Assistant"
           >
-            {/* Outer glow rings */}
-            <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 opacity-60 blur-lg group-hover:opacity-80 transition-opacity duration-500 animate-glow-spin" />
-            <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 opacity-40 blur-xl animate-glow-pulse" />
-
-            {/* Button body */}
-            <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 shadow-[0_0_30px_rgba(59,130,246,0.5),0_0_60px_rgba(139,92,246,0.3)] border border-blue-400/30">
-              <Sparkles size={24} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+            <span className="cb-wave-wrap">
+              <span className="cb-wave cb-wave-1" />
+              <span className="cb-wave cb-wave-2" />
             </span>
-
-            {/* Notification dot */}
-            <motion.span
-              key={pulseCount}
-              initial={{ scale: 0.8, opacity: 1 }}
-              animate={{ scale: 2, opacity: 0 }}
-              transition={{ duration: 1.5, ease: 'easeOut' }}
-              className="absolute top-0 right-0 w-3 h-3 rounded-full bg-cyan-400"
-            />
-            <span className="absolute top-0 right-0 w-3 h-3 rounded-full bg-cyan-400 border-2 border-[#070a0f]" />
+            <span className="cb-ring" />
+            <AiBrainIcon size={28} className="relative z-10 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* ─── Chat Window ─── */}
+      {/* ── chat panel ── */}
       <AnimatePresence>
-        {isOpen && (
+        {open && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed bottom-4 right-4 z-[100] w-[min(440px,calc(100vw-2rem))] h-[min(680px,calc(100vh-2rem))] flex flex-col rounded-3xl overflow-hidden chatbot-window"
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            style={PANEL_STYLE}
+            className="w-[min(420px,calc(100vw-2rem))] h-[min(640px,calc(100vh-2rem))] flex flex-col rounded-2xl overflow-hidden cb-panel"
           >
-            {/* Animated border glow */}
-            <div className="absolute -inset-[1px] rounded-3xl bg-gradient-to-br from-blue-500/50 via-purple-500/30 to-cyan-500/50 animate-glow-border -z-10" />
-            <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-cyan-500/20 blur-md -z-20" />
-
-            {/* ─── Header ─── */}
-            <div className="relative px-5 py-4 flex items-center gap-3 border-b border-white/[0.06] bg-gradient-to-r from-[#0c101a] via-[#0f1320] to-[#0c101a]">
-              {/* Header glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/5 to-cyan-600/10 pointer-events-none" />
-
-              <div className="relative">
-                <span className="absolute inset-0 rounded-xl bg-blue-500/30 blur-md animate-glow-pulse" />
-                <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-                  <Bot size={20} className="text-white" />
-                </div>
+            {/* header */}
+            <div className="flex items-center gap-3 px-4 py-3 cb-header">
+              <div className="w-9 h-9 rounded-xl cb-header-icon flex items-center justify-center">
+                <Bot size={18} className="text-white" strokeWidth={2.2} />
               </div>
-
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  CICR Assistant
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Live
-                  </span>
-                </h3>
-                <p className="text-[11px] text-gray-500 truncate">Your one-stop guide to everything CICR</p>
+                <p className="text-[13px] font-semibold text-white leading-tight cb-font">CICR Assistant</p>
+                <p className="text-[10px] text-[#555] leading-tight cb-font">Powered by Gemini AI</p>
               </div>
-
-              <button
-                onClick={() => setIsOpen(false)}
-                className="relative p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
-                aria-label="Close assistant"
-              >
-                <X size={18} />
+              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg text-[#555] hover:text-white hover:bg-white/5 transition-colors" aria-label="Close">
+                <X size={16} />
               </button>
             </div>
 
-            {/* ─── Messages ─── */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 chatbot-messages">
-              {messages.map((msg, idx) => (
+            {/* messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 cb-scroll">
+              {msgs.map((m, i) => (
                 <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 10 }}
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx === messages.length - 1 ? 0.1 : 0 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  transition={{ duration: 0.25 }}
+                  className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex gap-2.5 max-w-[88%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    {/* Avatar */}
-                    {msg.role === 'bot' && (
-                      <div className="relative shrink-0 mt-0.5">
-                        <span className="absolute inset-0 rounded-lg bg-blue-500/25 blur-sm" />
-                        <div className="relative w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500/80 to-purple-600/80 flex items-center justify-center">
-                          <Bot size={14} className="text-white" />
-                        </div>
+                  <div className={`flex gap-2 max-w-[90%] ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    {m.role === 'bot' && (
+                      <div className="w-6 h-6 rounded-md cb-avatar flex items-center justify-center shrink-0 mt-0.5">
+                        <Bot size={13} className="text-blue-300" strokeWidth={2.4} />
                       </div>
                     )}
-
-                    <div className="space-y-2">
-                      {/* Message bubble */}
-                      <div
-                        className={`px-4 py-3 text-[13px] leading-relaxed ${
-                          msg.role === 'bot'
-                            ? 'bg-[#13161f] border border-white/[0.06] text-gray-200 rounded-2xl rounded-tl-md shadow-[0_2px_12px_rgba(0,0,0,0.3)]'
-                            : 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-tr-md shadow-[0_2px_16px_rgba(59,130,246,0.3)]'
-                        }`}
-                      >
-                        <div
-                          className="chatbot-msg-content"
-                          dangerouslySetInnerHTML={{ __html: parseMessageContent(msg.text) }}
-                        />
+                    <div className="space-y-1.5">
+                      <div className={m.role === 'bot' ? 'cb-bubble-bot' : 'cb-bubble-user'}>
+                        <div className="cb-msg cb-font" dangerouslySetInnerHTML={{ __html: md(m.text) }} />
                       </div>
-
-                      {/* Navigation links */}
-                      {msg.navigation?.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {msg.navigation.map((nav, i) => (
-                            <button
-                              key={i}
-                              onClick={() => handleNavigate(nav.path)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 hover:border-blue-500/40 hover:text-blue-200 transition-all duration-200 hover:shadow-[0_0_12px_rgba(59,130,246,0.2)]"
-                            >
-                              <ExternalLink size={10} />
-                              {nav.label}
+                      {m.nav?.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {m.nav.map((n, j) => (
+                            <button key={j} onClick={() => go(n.path)} className="cb-chip cb-chip-link cb-font">
+                              <ExternalLink size={9} /> {n.label}
                             </button>
                           ))}
                         </div>
                       )}
-
-                      {/* Action buttons */}
-                      {msg.actions?.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {msg.actions.map((act, i) => (
-                            <button
-                              key={i}
-                              onClick={() => handleNavigate(act.navigateTo)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 hover:border-purple-500/40 hover:text-purple-200 transition-all duration-200 hover:shadow-[0_0_12px_rgba(139,92,246,0.2)]"
-                            >
-                              <Zap size={10} />
-                              {act.action}
+                      {m.acts?.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {m.acts.map((a, j) => (
+                            <button key={j} onClick={() => go(a.navigateTo)} className="cb-chip cb-chip-action cb-font">
+                              <Zap size={9} /> {a.action}
                             </button>
                           ))}
                         </div>
@@ -271,106 +212,51 @@ export default function GlowingChatbot() {
                 </motion.div>
               ))}
 
-              {/* Typing indicator */}
-              {isTyping && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-start gap-2.5"
-                >
-                  <div className="relative shrink-0">
-                    <span className="absolute inset-0 rounded-lg bg-blue-500/25 blur-sm animate-pulse" />
-                    <div className="relative w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500/80 to-purple-600/80 flex items-center justify-center">
-                      <Bot size={14} className="text-white" />
-                    </div>
+              {typing && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md cb-avatar flex items-center justify-center">
+                    <Bot size={13} className="text-blue-300 animate-pulse" strokeWidth={2.4} />
                   </div>
-                  <div className="bg-[#13161f] border border-white/[0.06] px-4 py-3 rounded-2xl rounded-tl-md">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
+                  <div className="cb-bubble-bot">
+                    <span className="flex gap-1 items-center py-0.5">
+                      <span className="cb-dot" style={{ animationDelay: '0ms' }} />
+                      <span className="cb-dot" style={{ animationDelay: '160ms' }} />
+                      <span className="cb-dot" style={{ animationDelay: '320ms' }} />
+                    </span>
                   </div>
                 </motion.div>
               )}
 
-              {/* Quick suggestions */}
-              {showSuggestions && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
-                  className="pt-2 space-y-2"
-                >
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-1">
-                    Quick suggestions
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {QUICK_SUGGESTIONS.map((s, i) => (
-                      <motion.button
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4 + i * 0.05 }}
-                        onClick={() => handleSend(s.question)}
-                        className="px-3 py-1.5 text-[11px] font-medium rounded-xl bg-white/[0.03] border border-white/[0.06] text-gray-300 hover:bg-white/[0.06] hover:border-blue-500/30 hover:text-blue-200 transition-all duration-200 hover:shadow-[0_0_8px_rgba(59,130,246,0.15)]"
-                      >
-                        {s.label}
-                      </motion.button>
+              {fresh && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="pt-1 space-y-1.5">
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-[#444] font-semibold px-0.5 cb-font">Try asking</p>
+                  <div className="flex flex-wrap gap-1">
+                    {SUGGESTIONS.map((s, i) => (
+                      <button key={i} onClick={() => send(s.q)} className="cb-chip cb-chip-sug cb-font">{s.label}</button>
                     ))}
                   </div>
                 </motion.div>
               )}
-
-              <div ref={messagesEndRef} />
+              <div ref={endRef} />
             </div>
 
-            {/* ─── Input ─── */}
-            <div className="relative px-4 py-3 border-t border-white/[0.06] bg-[#0a0d14]/80 backdrop-blur-sm">
-              {/* Input glow line */}
-              <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSend();
-                }}
-                className="flex items-center gap-2"
-              >
-                <div className="flex-1 relative group">
-                  <input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask anything about CICR..."
-                    disabled={loading}
-                    className="w-full bg-[#0e1119] border border-white/[0.08] rounded-2xl px-4 py-3 text-[13px] text-white placeholder-gray-500 outline-none transition-all duration-300 focus:border-blue-500/40 focus:shadow-[0_0_16px_rgba(59,130,246,0.15)] disabled:opacity-50"
-                  />
-                  {/* Input focus glow */}
-                  <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-blue-500/0 via-blue-500/0 to-purple-500/0 opacity-0 group-focus-within:opacity-100 group-focus-within:from-blue-500/20 group-focus-within:via-purple-500/10 group-focus-within:to-cyan-500/20 blur-sm transition-all duration-500 -z-10" />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading || !input.trim()}
-                  className="relative p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_28px_rgba(59,130,246,0.5)] transition-all duration-300 disabled:opacity-40 disabled:shadow-none active:scale-95"
-                >
-                  {loading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <Send size={18} />
-                  )}
-                </button>
-              </form>
-
-              <div className="flex items-center justify-center gap-1 mt-2">
-                <Sparkles size={8} className="text-gray-600" />
-                <p className="text-[9px] text-gray-600 tracking-wider">Powered by Gemini AI • CICR Connect</p>
-              </div>
-            </div>
+            {/* input */}
+            <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex items-center gap-2 px-3 py-2.5 cb-input-bar">
+              <input
+                ref={inputRef} value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask anything…"
+                disabled={busy}
+                className="flex-1 bg-transparent border-0 outline-none text-[13px] text-white placeholder-[#444] cb-font disabled:opacity-40"
+              />
+              <button type="submit" disabled={busy || !input.trim()} className="cb-send-btn" aria-label="Send">
+                {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              </button>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </>,
+    document.body
   );
 }

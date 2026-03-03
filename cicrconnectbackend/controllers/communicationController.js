@@ -146,7 +146,14 @@ const serializeMessage = (messageDoc) => ({
           isAI: !!readDoc(messageDoc, 'senderMeta.isAI', false),
         }
       : null,
-  replyTo: readDoc(messageDoc, 'replyTo', null),
+  replyTo: readDoc(messageDoc, 'replyTo')
+    ? {
+        messageId: readDoc(messageDoc, 'replyTo.messageId', null),
+        text: readDoc(messageDoc, 'replyTo.text', ''),
+        senderName: readDoc(messageDoc, 'replyTo.senderName', ''),
+        senderCollegeId: readDoc(messageDoc, 'replyTo.senderCollegeId', ''),
+      }
+    : null,
   mentions: Array.isArray(readDoc(messageDoc, 'mentions'))
     ? readDoc(messageDoc, 'mentions').map((m) => ({
         _id: readDoc(m, '_id'),
@@ -257,7 +264,11 @@ const queueAiReply = async (message) => {
       },
     });
 
-    const payload = serializeMessage(aiMsg);
+    // Re-fetch so Mongoose getters (decryption) fire on all fields
+    const fullAiMsg = await CommunicationMessage.findById(aiMsg._id)
+      .populate('sender', 'name collegeId role')
+      .populate('mentions', 'name collegeId');
+    const payload = serializeMessage(fullAiMsg || aiMsg);
     broadcast('new-message', payload, conversationId);
   } catch (err) {
     // Avoid crashing user chat flow for AI failures.

@@ -1,13 +1,13 @@
 const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
+
 const cors = require('cors');
 const { connectDB, getDbHealth } = require('./config/db');
 const { env, validateEnv } = require('./config/env');
 const { securityHeaders } = require('./middleware/securityMiddleware');
 const { requestId, requestLogger } = require('./middleware/observabilityMiddleware');
 const logger = require('./utils/logger');
-
-dotenv.config();
 const envValidation = validateEnv({ throwOnError: false });
 if (!envValidation.ok) {
   logger.error('env_validation_failed', { errors: envValidation.errors });
@@ -48,7 +48,7 @@ const createApp = () => {
 
   const allowedOrigins = new Set([
     'https://cicrconnect.vercel.app',
-    'http://localhost:8081/',
+    'http://localhost:5173',
     ...env.frontendUrls.map((url) => normalizeOrigin(url)),
   ]);
 
