@@ -69,7 +69,7 @@ export default function CommandPalette({ open, onClose, commands = [], initialQu
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80]"
+            className="fixed inset-0 bg-slate-50 backdrop-blur-sm z-[80]"
             onClick={onClose}
           />
 
@@ -80,8 +80,8 @@ export default function CommandPalette({ open, onClose, commands = [], initialQu
             transition={{ duration: 0.2 }}
             className="fixed left-1/2 top-[13vh] -translate-x-1/2 w-[min(700px,94vw)] z-[90] ui-surface"
           >
-            <div className="p-3 border-b border-gray-800/90 flex items-center gap-2">
-              <Search size={14} className="text-gray-500" />
+            <div className="p-3 border-b border-slate-200 bg-white border border-slate-200 shadow-sm flex items-center gap-2">
+              <Search size={14} className="text-slate-500" />
               <input
                 autoFocus
                 value={query}
@@ -89,7 +89,7 @@ export default function CommandPalette({ open, onClose, commands = [], initialQu
                 placeholder="Search pages and actions..."
                 className="flex-1 bg-transparent text-sm text-gray-100 outline-none"
               />
-              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-500">
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-slate-500">
                 <Command size={11} /> Enter
               </span>
             </div>
@@ -108,17 +108,17 @@ export default function CommandPalette({ open, onClose, commands = [], initialQu
                     }}
                     className={`w-full text-left rounded-xl px-3 py-2.5 border mb-1 transition-colors ${
                       activeIndex === index
-                        ? 'border-blue-500/45 bg-blue-500/10 text-blue-100'
-                        : 'border-transparent text-gray-200 hover:border-gray-700 hover:bg-white/[0.03]'
+                        ? 'border-blue-300 bg-blue-500/10 text-blue-700'
+                        : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-white/[0.03]'
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="h-7 w-7 rounded-lg border border-gray-700/70 flex items-center justify-center shrink-0 mt-0.5">
-                        {item.icon ? <item.icon size={13} className="text-cyan-300" /> : <Command size={13} className="text-cyan-300" />}
+                      <div className="h-7 w-7 rounded-lg border border-slate-300/70 flex items-center justify-center shrink-0 mt-0.5">
+                        {item.icon ? <item.icon size={13} className="text-cyan-600" /> : <Command size={13} className="text-cyan-600" />}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold truncate">{item.label}</p>
-                        {item.subtitle ? <p className="text-xs text-gray-500 mt-0.5 truncate">{item.subtitle}</p> : null}
+                        {item.subtitle ? <p className="text-xs text-slate-500 mt-0.5 truncate">{item.subtitle}</p> : null}
                       </div>
                     </div>
                   </button>

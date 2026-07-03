@@ -4,9 +4,16 @@ const User = require('../models/User');
 // @desc    Get all community posts
 exports.getPosts = async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 500);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+
     const posts = await Post.find()
       .populate('user', 'name role branch year collegeId warningCount')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });

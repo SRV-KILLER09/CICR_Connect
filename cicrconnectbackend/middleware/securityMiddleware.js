@@ -1,3 +1,5 @@
+const rateLimit = require('express-rate-limit');
+
 const WINDOW_CACHE_LIMIT = 5000;
 
 const securityHeaders = (req, res, next) => {
@@ -20,39 +22,13 @@ const securityHeaders = (req, res, next) => {
   next();
 };
 
-const buildRateLimiter = ({ windowMs, max, keyGenerator, name }) => {
-  const buckets = new Map();
-  const getKey = typeof keyGenerator === 'function' ? keyGenerator : (req) => req.ip || 'unknown';
-
-  return (req, res, next) => {
-    const now = Date.now();
-    const key = `${name}:${getKey(req)}`;
-    const existing = buckets.get(key);
-
-    if (!existing || existing.resetAt <= now) {
-      buckets.set(key, { count: 1, resetAt: now + windowMs });
-      return next();
-    }
-
-    existing.count += 1;
-    buckets.set(key, existing);
-
-    if (existing.count > max) {
-      const retryAfterSec = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
-      res.setHeader('Retry-After', String(retryAfterSec));
-      return res.status(429).json({
-        message: 'Too many requests. Please slow down and try again shortly.',
-      });
-    }
-
-    if (buckets.size > WINDOW_CACHE_LIMIT) {
-      for (const [entryKey, entry] of buckets.entries()) {
-        if (!entry || entry.resetAt <= now) buckets.delete(entryKey);
-      }
-    }
-
-    return next();
-  };
+const buildRateLimiter = ({ windowMs, max, keyGenerator }) => {
+  return rateLimit({
+    windowMs,
+    max,
+    message: { message: 'Too many requests. Please slow down and try again shortly.' },
+    ...(keyGenerator && { keyGenerator }),
+  });
 };
 
 const authLimiter = buildRateLimiter({
@@ -77,12 +53,19 @@ const communicationLimiter = buildRateLimiter({
   name: 'communication',
   windowMs: 60 * 1000,
   max: 80,
-  keyGenerator: (req) => req.user?._id || req.ip || 'unknown',
+  keyGenerator: (req) => req.user ? String(req.user._id) : undefined,
+});
+
+const globalLimiter = buildRateLimiter({
+  name: 'global',
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
 });
 
 module.exports = {
   securityHeaders,
   buildRateLimiter,
+  globalLimiter,
   authLimiter,
   passwordLimiter,
   applicationLimiter,

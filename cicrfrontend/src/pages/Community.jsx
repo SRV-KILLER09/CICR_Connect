@@ -76,17 +76,17 @@ const dispatchToast = (message, type = 'info') => {
 };
 
 const statusClassName = (status) => {
-  if (status === 'Resolved') return 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10';
-  if (status === 'Rejected') return 'text-rose-300 border-rose-500/40 bg-rose-500/10';
-  if (status === 'InReview') return 'text-amber-300 border-amber-500/40 bg-amber-500/10';
-  return 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10';
+  if (status === 'Resolved') return 'text-emerald-600 border-emerald-200 bg-emerald-500/10';
+  if (status === 'Rejected') return 'text-red-600 border-red-200 bg-rose-500/10';
+  if (status === 'InReview') return 'text-amber-600 border-amber-200 bg-amber-500/10';
+  return 'text-cyan-600 border-blue-200 bg-cyan-500/10';
 };
 
 const priorityClassName = (priority) => {
-  if (priority === 'Critical') return 'text-rose-300 border-rose-500/35';
+  if (priority === 'Critical') return 'text-red-600 border-red-200';
   if (priority === 'High') return 'text-orange-300 border-orange-500/35';
-  if (priority === 'Medium') return 'text-amber-300 border-amber-500/35';
-  return 'text-gray-300 border-gray-600';
+  if (priority === 'Medium') return 'text-amber-600 border-amber-200';
+  return 'text-slate-700 border-gray-600';
 };
 
 const buildIssueTimeline = (issue = {}) => {
@@ -144,6 +144,9 @@ export default function Community() {
   const [filterYear, setFilterYear] = useState('All');
   const [filterRole, setFilterRole] = useState('All');
 
+  const [memberPage, setMemberPage] = useState(1);
+  const [memberTotalPages, setMemberTotalPages] = useState(1);
+
   const [issueForm, setIssueForm] = useState({
     title: '',
     category: 'General',
@@ -165,13 +168,18 @@ export default function Community() {
       try {
         const [postsRes, membersRes, myIssuesRes, adminIssuesRes] = await Promise.all([
           fetchPosts().catch(() => ({ data: [] })),
-          fetchDirectoryMembers().catch(() => ({ data: [] })),
+          fetchDirectoryMembers({ page: 1, limit: 50 }).catch(() => ({ data: { data: [] } })),
           fetchMyIssues().catch(() => ({ data: [] })),
           isStrictAdmin ? fetchAdminIssues().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
         ]);
 
+        const memData = membersRes.data;
+        const membersList = Array.isArray(memData) ? memData : memData?.data || [];
+
         setPosts(Array.isArray(postsRes.data) ? postsRes.data : []);
-        setMembers(Array.isArray(membersRes.data) ? membersRes.data : []);
+        setMembers(membersList);
+        setMemberTotalPages(memData?.totalPages || 1);
+        setMemberPage(1);
         setMyIssues(Array.isArray(myIssuesRes.data) ? myIssuesRes.data : []);
         setAdminIssues(Array.isArray(adminIssuesRes.data) ? adminIssuesRes.data : []);
       } catch (err) {
@@ -184,6 +192,21 @@ export default function Community() {
 
     loadData();
   }, [isStrictAdmin]);
+
+  const handleLoadMoreMembers = async () => {
+    if (memberPage >= memberTotalPages) return;
+    try {
+      const nextPage = memberPage + 1;
+      const res = await fetchDirectoryMembers({ page: nextPage, limit: 50 });
+      const memData = res.data;
+      const membersList = Array.isArray(memData) ? memData : memData?.data || [];
+      setMembers(prev => [...prev, ...membersList]);
+      setMemberTotalPages(memData?.totalPages || 1);
+      setMemberPage(nextPage);
+    } catch (err) {
+      dispatchToast('Error loading more members', 'error');
+    }
+  };
 
   useEffect(() => {
     const requestedTab = searchParams.get('tab');
@@ -406,13 +429,13 @@ export default function Community() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="animate-spin text-blue-500 w-12 h-12" />
-        <p className="text-gray-500 font-black tracking-[0.2em] uppercase text-[10px]">Synchronizing Hub...</p>
+        <p className="text-slate-500 font-black tracking-[0.2em] uppercase text-[10px]">Synchronizing Hub...</p>
       </div>
     );
   }
 
   return (
-    <div className="ui-page max-w-7xl px-4 py-6 md:py-8 space-y-8 md:space-y-10 min-h-screen overflow-x-hidden page-motion-a">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl px-4 py-6 md:py-8 space-y-8 md:space-y-10 min-h-screen overflow-x-hidden page-motion-a">
       <header className="space-y-4 section-motion section-motion-delay-1">
         <PageHeader
           eyebrow="Community Workspace"
@@ -420,7 +443,7 @@ export default function Community() {
           subtitle="Professional collaboration board, verified member directory, and private issue reporting line to admin."
           icon={Globe}
         />
-        <div className="inline-flex items-center gap-2 rounded-xl border border-gray-800 p-1 self-start md:self-auto overflow-x-auto max-w-full bg-black/20">
+        <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 p-1 self-start md:self-auto overflow-x-auto max-w-full bg-slate-50">
           {[
             { id: 'feed', icon: MessageSquare, label: 'Feed' },
             { id: 'directory', icon: Users, label: 'Directory' },
@@ -431,8 +454,8 @@ export default function Community() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 md:px-5 py-2 rounded-lg text-xs font-semibold inline-flex items-center gap-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'text-cyan-100 border border-cyan-500/45 bg-cyan-500/10'
-                  : 'text-gray-400 hover:text-gray-200 border border-transparent hover:border-gray-700'
+                  ? 'text-blue-700 border border-blue-200 bg-cyan-500/10'
+                  : 'text-slate-600 hover:text-slate-700 border border-transparent hover:border-slate-300'
               }`}
             >
               <tab.icon size={14} />
@@ -441,7 +464,7 @@ export default function Community() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-4 border-y border-gray-800/70 py-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-4 border-y border-slate-200 bg-white border border-slate-200 shadow-sm py-3">
           <SnapshotRail label="Posts" value={communitySnapshot.posts} tone="cyan" />
           <SnapshotRail label="Members" value={communitySnapshot.members} tone="blue" />
           <SnapshotRail label="Open Issues" value={communitySnapshot.openIssues} tone="amber" />
@@ -462,7 +485,7 @@ export default function Community() {
             <div className="lg:col-span-8 space-y-6 md:space-y-7">
               <form
                 onSubmit={handlePostSubmit}
-                className="border-y border-gray-800/80 py-5 md:py-6 space-y-4"
+                className="border-y border-slate-200 bg-white border border-slate-200 shadow-sm py-5 md:py-6 space-y-4"
               >
                 <div className="flex flex-wrap gap-2 w-full pb-1">
                   {['Announcement', 'Requirement', 'Idea', ...(isPrivileged ? ['Event'] : [])].map((type) => (
@@ -472,8 +495,8 @@ export default function Community() {
                       onClick={() => setPostType(type)}
                       className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                         postType === type
-                          ? 'text-cyan-200 border-cyan-500/45 bg-cyan-500/10'
-                          : 'border-gray-800 text-gray-500 hover:text-gray-300'
+                          ? 'text-cyan-700 border-blue-200 bg-cyan-500/10'
+                          : 'border-slate-200 text-slate-500 hover:text-slate-700'
                       }`}
                     >
                       {type}
@@ -482,14 +505,14 @@ export default function Community() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="hidden sm:flex w-11 h-11 rounded-xl border border-cyan-500/35 shrink-0 items-center justify-center font-semibold text-cyan-200 text-lg">
+                  <div className="hidden sm:flex w-11 h-11 rounded-xl border border-blue-200 shrink-0 items-center justify-center font-semibold text-cyan-700 text-lg">
                     {userData.name?.[0] || 'M'}
                   </div>
                   <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="Share an update, idea, requirement, or event note..."
-                    className="ui-input min-h-30 resize-none"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 min-h-30 resize-none"
                     rows={4}
                   />
                 </div>
@@ -499,17 +522,17 @@ export default function Community() {
                     value={postTopic}
                     onChange={(e) => setPostTopic(e.target.value)}
                     placeholder="Topic (AI, Robotics, Placement...)"
-                    className="ui-input w-full sm:w-64 text-sm!"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 w-full sm:w-64 text-sm!"
                   />
 
-                  <button className="btn btn-primary w-full sm:w-auto px-5! py-2.5! text-xs! inline-flex items-center justify-center gap-2">
+                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5! py-2.5! text-xs! inline-flex items-center justify-center gap-2">
                     <Send size={14} />
                     Post
                   </button>
                 </div>
               </form>
 
-              <div className="border-y border-gray-800/80 divide-y divide-gray-800/75">
+              <div className="border-y border-slate-200 bg-white border border-slate-200 shadow-sm divide-y divide-gray-800/75">
                 {posts.map((post, idx) => (
                   <motion.article
                     key={post._id}
@@ -520,19 +543,19 @@ export default function Community() {
                   >
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex gap-4 min-w-0">
-                        <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg border border-cyan-500/35 flex items-center justify-center font-semibold text-cyan-200 shrink-0">
+                        <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg border border-blue-200 flex items-center justify-center font-semibold text-cyan-700 shrink-0">
                           {post.user?.name?.[0] || 'M'}
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="text-white font-semibold text-sm md:text-base">{post.user?.name || 'Member'}</h4>
-                            <span className="text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-md text-[10px] font-semibold">
+                            <h4 className="text-slate-900 font-semibold text-sm md:text-base">{post.user?.name || 'Member'}</h4>
+                            <span className="text-cyan-600 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-semibold">
                               {post.type}
                             </span>
                           </div>
-                          <p className="text-[11px] text-gray-500 mt-1 flex flex-wrap items-center gap-2">
+                          <p className="text-[11px] text-slate-500 mt-1 flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center gap-1">
-                              <Hash size={10} className="text-cyan-300" />
+                              <Hash size={10} className="text-cyan-600" />
                               {post.topic || post.type}
                             </span>
                             <span className="inline-flex items-center gap-1">
@@ -561,12 +584,12 @@ export default function Community() {
                       </div>
                     </div>
 
-                    <p className="mt-4 text-gray-200 text-sm md:text-base leading-relaxed">{post.content}</p>
+                    <p className="mt-4 text-slate-700 text-sm md:text-base leading-relaxed">{post.content}</p>
 
                     <div className="mt-4">
                       <button
                         onClick={() => handleLike(post._id)}
-                        className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border border-gray-700 text-gray-300 hover:text-pink-300 hover:border-pink-400/35"
+                        className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:text-pink-300 hover:border-pink-400/35"
                       >
                         <Heart size={14} />
                         {post.likes?.length || 0} Reactions
@@ -582,7 +605,7 @@ export default function Community() {
                       hint="Share the first update with your team."
                       actionLabel="Create first post"
                       onAction={() => {
-                        const textarea = document.querySelector('textarea.ui-input');
+                        const textarea = document.querySelector('textarea.px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400');
                         textarea?.focus();
                       }}
                     />
@@ -591,12 +614,12 @@ export default function Community() {
               </div>
             </div>
 
-            <aside className="lg:col-span-4 h-fit lg:border-l lg:border-gray-800/80 lg:pl-6 space-y-4">
-              <h3 className="font-semibold mb-2 flex items-center gap-2 text-white text-sm">
+            <aside className="lg:col-span-4 h-fit lg:border-l lg:border-slate-200/80 lg:pl-6 space-y-4">
+              <h3 className="font-semibold mb-2 flex items-center gap-2 text-slate-900 text-sm">
                 <Sparkles size={16} className="text-indigo-300" />
                 Community Standards
               </h3>
-              <div className="space-y-1 divide-y divide-gray-800/80 border-y border-gray-800/80">
+              <div className="space-y-1 divide-y divide-gray-800/80 border-y border-slate-200 bg-white border border-slate-200 shadow-sm">
                 {[
                   'Use clear technical context in updates.',
                   'Tag ownership and expected delivery date.',
@@ -604,10 +627,10 @@ export default function Community() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between px-2 py-3 text-sm text-gray-300"
+                    className="flex items-center justify-between px-2 py-3 text-sm text-slate-700"
                   >
                     {item}
-                    <ChevronRight size={14} className="text-gray-500" />
+                    <ChevronRight size={14} className="text-slate-500" />
                   </div>
                 ))}
               </div>
@@ -624,9 +647,9 @@ export default function Community() {
           >
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div>
-                <p className="text-xs text-cyan-300 font-semibold">CICR Directory</p>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-1">Member Index</h3>
-                <p className="text-gray-500 text-sm mt-2">All verified members are visible here, including alumni.</p>
+                <p className="text-xs text-cyan-600 font-semibold">CICR Directory</p>
+                <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mt-1">Member Index</h3>
+                <p className="text-slate-500 text-sm mt-2">All verified members are visible here, including alumni.</p>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <SnapshotRail label="Total" value={directoryStats.total} tone="blue" />
@@ -635,27 +658,27 @@ export default function Community() {
               </div>
             </div>
 
-            <section className="border-y border-gray-800/80 py-4">
-              <div className="flex items-center gap-2 text-gray-400 text-xs font-semibold mb-3">
-                <Filter size={14} className="text-cyan-300" />
+            <section className="border-y border-slate-200 bg-white border border-slate-200 shadow-sm py-4">
+              <div className="flex items-center gap-2 text-slate-600 text-xs font-semibold mb-3">
+                <Filter size={14} className="text-cyan-600" />
                 Directory Filters
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
                 <div className="xl:col-span-2 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                   <input
                     type="text"
                     placeholder="Search by name, ID, email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="ui-input pl-12!"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 pl-12!"
                   />
                 </div>
 
                 <select
                   value={filterBranch}
                   onChange={(e) => setFilterBranch(e.target.value)}
-                  className="ui-input text-sm!"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 text-sm!"
                 >
                   {branchOptions.map((b) => (
                     <option key={b} value={b}>
@@ -667,7 +690,7 @@ export default function Community() {
                 <select
                   value={filterYear}
                   onChange={(e) => setFilterYear(e.target.value)}
-                  className="ui-input text-sm!"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 text-sm!"
                 >
                   {yearOptions.map((y) => (
                     <option key={y} value={y}>
@@ -680,7 +703,7 @@ export default function Community() {
                   <select
                     value={filterRole}
                     onChange={(e) => setFilterRole(e.target.value)}
-                    className="ui-input flex-1 text-sm!"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 flex-1 text-sm!"
                   >
                     {roleOptions.map((role) => (
                       <option key={role} value={role}>
@@ -692,7 +715,7 @@ export default function Community() {
                     type="button"
                     onClick={resetDirectoryFilters}
                     aria-label="Reset directory filters"
-                    className="inline-flex items-center justify-center border border-gray-700/80 rounded-lg px-3 text-gray-400 hover:text-white hover:border-cyan-500/45"
+                    className="inline-flex items-center justify-center border border-slate-300/80 rounded-lg px-3 text-slate-600 hover:text-slate-900 hover:border-blue-200"
                     title="Reset filters"
                   >
                     <RotateCcw size={16} />
@@ -701,16 +724,16 @@ export default function Community() {
               </div>
             </section>
 
-            <section className="border-y border-gray-800/80 overflow-hidden hidden lg:block">
+            <section className="border-y border-slate-200 bg-white border border-slate-200 shadow-sm overflow-hidden hidden lg:block">
               <div className="overflow-x-auto max-h-[68vh]">
                 <table className="w-full min-w-230 border-collapse">
-                  <thead className="sticky top-0 z-10 bg-[#0a0f17]/95 backdrop-blur-sm border-b border-gray-800/80">
+                  <thead className="sticky top-0 z-10 bg-slate-50 backdrop-blur-sm border-b border-slate-200 bg-white border border-slate-200 shadow-sm">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs text-gray-400 font-semibold">Member</th>
-                      <th className="px-4 py-3 text-left text-xs text-gray-400 font-semibold">Academic</th>
-                      <th className="px-4 py-3 text-left text-xs text-gray-400 font-semibold">Contact</th>
-                      <th className="px-4 py-3 text-left text-xs text-gray-400 font-semibold">Role</th>
-                      <th className="px-4 py-3 text-right text-xs text-gray-400 font-semibold">Profile</th>
+                      <th className="px-4 py-3 text-left text-xs text-slate-600 font-semibold">Member</th>
+                      <th className="px-4 py-3 text-left text-xs text-slate-600 font-semibold">Academic</th>
+                      <th className="px-4 py-3 text-left text-xs text-slate-600 font-semibold">Contact</th>
+                      <th className="px-4 py-3 text-left text-xs text-slate-600 font-semibold">Role</th>
+                      <th className="px-4 py-3 text-right text-xs text-slate-600 font-semibold">Profile</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/60">
@@ -728,12 +751,12 @@ export default function Community() {
                         <tr key={member._id} className="hover:bg-white/2 transition-colors">
                           <td className="px-4 py-3.5 align-top">
                             <div className="flex items-start gap-3">
-                              <div className="w-9 h-9 rounded-lg border border-blue-500/35 flex items-center justify-center font-semibold text-cyan-200 text-sm shrink-0">
+                              <div className="w-9 h-9 rounded-lg border border-blue-300 flex items-center justify-center font-semibold text-cyan-700 text-sm shrink-0">
                                 {member.name?.[0] || 'M'}
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">{member.name || 'Member'}</p>
-                                <p className="mt-1 text-[11px] text-gray-500 inline-flex items-center gap-1.5">
+                                <p className="text-sm font-semibold text-slate-900 truncate">{member.name || 'Member'}</p>
+                                <p className="mt-1 text-[11px] text-slate-500 inline-flex items-center gap-1.5">
                                   <Fingerprint size={11} className="text-blue-400" />
                                   {member.collegeId || 'NO-ID'}
                                 </p>
@@ -741,16 +764,16 @@ export default function Community() {
                             </div>
                           </td>
                           <td className="px-4 py-3.5 align-top">
-                            <p className="text-xs text-gray-300 inline-flex items-center gap-1.5">
+                            <p className="text-xs text-slate-700 inline-flex items-center gap-1.5">
                               <GraduationCap size={12} className="text-amber-400" />
                               {yearLabel}
                             </p>
-                            <p className="mt-1 text-[11px] uppercase tracking-wider text-gray-500">
+                            <p className="mt-1 text-[11px] uppercase tracking-wider text-slate-500">
                               {member.branch || 'GENERAL'} {member.batch ? `• ${member.batch}` : ''}
                             </p>
                           </td>
                           <td className="px-4 py-3.5 align-top">
-                            <p className="text-xs text-gray-300 inline-flex items-center gap-1.5">
+                            <p className="text-xs text-slate-700 inline-flex items-center gap-1.5">
                               <Mail size={12} className="text-blue-400 shrink-0" />
                               <span className="truncate max-w-60 inline-block">{member.email || 'No email'}</span>
                             </p>
@@ -759,7 +782,7 @@ export default function Community() {
                             <div className="inline-flex items-center gap-2">
                               <span
                                 className={`text-[10px] px-2 py-1 rounded-md font-semibold ${
-                                  isAlumni ? 'bg-emerald-500/15 text-emerald-300' : 'bg-blue-500/15 text-blue-300'
+                                  isAlumni ? 'bg-emerald-500/15 text-emerald-600' : 'bg-blue-500/15 text-blue-600'
                                 }`}
                               >
                                 {member.role || 'User'}
@@ -771,12 +794,12 @@ export default function Community() {
                             {hasProfile ? (
                               <Link
                                 to={`/profile/${encodeURIComponent(member.collegeId)}`}
-                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-500/40 text-blue-200 text-xs font-semibold hover:bg-blue-500/10"
+                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-300 text-blue-600 text-xs font-semibold hover:bg-blue-50"
                               >
                                 Open Profile <ExternalLink size={11} />
                               </Link>
                             ) : (
-                              <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs font-semibold">
+                              <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-xs font-semibold">
                                 Unavailable
                               </span>
                             )}
@@ -788,6 +811,16 @@ export default function Community() {
                 </table>
               </div>
             </section>
+            {memberPage < memberTotalPages && (
+              <div className="p-4 flex justify-center mt-2 hidden lg:flex">
+                <button 
+                  onClick={handleLoadMoreMembers}
+                  className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-sm px-6 py-2"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
 
             <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:hidden">
               {filteredMembers.map((member) => {
@@ -803,35 +836,35 @@ export default function Community() {
                 return (
                   <article
                     key={`mobile-${member._id}`}
-                    className="border-b border-gray-800/70 pb-4 space-y-2.5"
+                    className="border-b border-slate-200 bg-white border border-slate-200 shadow-sm pb-4 space-y-2.5"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl border border-cyan-500/35 flex items-center justify-center font-semibold text-cyan-200 shrink-0">
+                      <div className="w-10 h-10 rounded-xl border border-blue-200 flex items-center justify-center font-semibold text-cyan-700 shrink-0">
                         {member.name?.[0] || 'M'}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{member.name || 'Member'}</p>
-                        <p className="mt-1 text-[11px] text-gray-500 inline-flex items-center gap-1.5">
-                          <Fingerprint size={11} className="text-cyan-300" />
+                        <p className="text-sm font-semibold text-slate-900 truncate">{member.name || 'Member'}</p>
+                        <p className="mt-1 text-[11px] text-slate-500 inline-flex items-center gap-1.5">
+                          <Fingerprint size={11} className="text-cyan-600" />
                           {member.collegeId || 'NO-ID'}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-gray-300 inline-flex items-center gap-1.5">
+                    <p className="text-xs text-slate-700 inline-flex items-center gap-1.5">
                       <GraduationCap size={12} className="text-amber-400" />
                       {yearLabel} • {member.branch || 'GENERAL'} {member.batch ? `• ${member.batch}` : ''}
                     </p>
 
-                    <p className="text-xs text-gray-300 inline-flex items-center gap-1.5 break-all">
-                      <Mail size={12} className="text-cyan-300 shrink-0" />
+                    <p className="text-xs text-slate-700 inline-flex items-center gap-1.5 break-all">
+                      <Mail size={12} className="text-cyan-600 shrink-0" />
                       {member.email || 'No email'}
                     </p>
 
                     <div className="flex items-center justify-between gap-2 pt-1">
                       <span
                         className={`text-[10px] px-2 py-1 rounded-md font-semibold ${
-                          isAlumni ? 'bg-emerald-500/15 text-emerald-300' : 'bg-cyan-500/15 text-cyan-300'
+                          isAlumni ? 'bg-emerald-500/15 text-emerald-600' : 'bg-cyan-500/15 text-cyan-600'
                         }`}
                       >
                         {member.role || 'User'}
@@ -839,12 +872,12 @@ export default function Community() {
                       {hasProfile ? (
                         <Link
                           to={`/profile/${encodeURIComponent(member.collegeId)}`}
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan-500/40 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/10"
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 text-cyan-700 text-xs font-semibold hover:bg-blue-50"
                         >
                           Open Profile <ExternalLink size={11} />
                         </Link>
                       ) : (
-                        <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs font-semibold">
+                        <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 text-xs font-semibold">
                           Unavailable
                         </span>
                       )}
@@ -853,13 +886,23 @@ export default function Community() {
                 );
               })}
             </section>
+            {memberPage < memberTotalPages && (
+              <div className="p-4 flex justify-center mt-2 lg:hidden">
+                <button 
+                  onClick={handleLoadMoreMembers}
+                  className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-sm px-6 py-2"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
 
             {filteredMembers.length === 0 && (
               <div className="text-center py-16">
                 <Users className="mx-auto text-gray-700 mb-3" size={44} />
-                <h4 className="text-lg font-semibold text-gray-300">No members found</h4>
-                <p className="text-gray-500 mt-1 text-sm">Try changing filters or clearing search.</p>
-                <button onClick={resetDirectoryFilters} className="mt-4 text-blue-400 font-semibold hover:text-blue-300">
+                <h4 className="text-lg font-semibold text-slate-700">No members found</h4>
+                <p className="text-slate-500 mt-1 text-sm">Try changing filters or clearing search.</p>
+                <button onClick={resetDirectoryFilters} className="mt-4 text-blue-400 font-semibold hover:text-blue-600">
                   Reset all filters
                 </button>
               </div>
@@ -876,13 +919,13 @@ export default function Community() {
           >
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div>
-                <p className="text-xs text-rose-300 font-semibold">Issue Escalation</p>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-1">Raise an Admin Ticket</h3>
-                <p className="text-gray-500 text-sm mt-2">
+                <p className="text-xs text-red-600 font-semibold">Issue Escalation</p>
+                <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mt-1">Raise an Admin Ticket</h3>
+                <p className="text-slate-500 text-sm mt-2">
                   Issues are private and routed directly to Admin. They are not visible in public feed.
                 </p>
               </div>
-              <div className="inline-flex items-center gap-2 border border-rose-500/35 text-rose-200 rounded-lg px-3 py-2 text-xs">
+              <div className="inline-flex items-center gap-2 border border-red-200 text-red-600 rounded-lg px-3 py-2 text-xs">
                 <ShieldQuestion size={14} />
                 Admin-handled workflow
               </div>
@@ -891,10 +934,10 @@ export default function Community() {
             <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)] gap-8">
               <section
                 ref={issueSectionRef}
-                className="border-y border-gray-800/80 py-4"
+                className="border-y border-slate-200 bg-white border border-slate-200 shadow-sm py-4"
               >
-                <h4 className="text-sm font-semibold text-gray-200 inline-flex items-center gap-2">
-                  <Bug size={14} className="text-rose-300" />
+                <h4 className="text-sm font-semibold text-slate-700 inline-flex items-center gap-2">
+                  <Bug size={14} className="text-red-600" />
                   New Issue
                 </h4>
 
@@ -904,18 +947,18 @@ export default function Community() {
                     value={issueForm.title}
                     onChange={(e) => setIssueForm((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="Issue title"
-                    className="ui-input"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                     required
                     minLength={4}
                     maxLength={160}
                   />
-                  <p className="text-xs text-gray-400">Use a clear summary so Admin can triage quickly.</p>
+                  <p className="text-xs text-slate-600">Use a clear summary so Admin can triage quickly.</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <select
                       value={issueForm.category}
                       onChange={(e) => setIssueForm((prev) => ({ ...prev, category: e.target.value }))}
-                      className="ui-input"
+                      className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                     >
                       {ISSUE_CATEGORIES.map((category) => (
                         <option key={category} value={category}>
@@ -927,7 +970,7 @@ export default function Community() {
                     <select
                       value={issueForm.priority}
                       onChange={(e) => setIssueForm((prev) => ({ ...prev, priority: e.target.value }))}
-                      className="ui-input"
+                      className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                     >
                       {ISSUE_PRIORITIES.map((priority) => (
                         <option key={priority} value={priority}>
@@ -941,31 +984,31 @@ export default function Community() {
                     value={issueForm.description}
                     onChange={(e) => setIssueForm((prev) => ({ ...prev, description: e.target.value }))}
                     placeholder="Describe the issue in detail with impact and urgency."
-                    className="ui-input resize-none"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none"
                     rows={5}
                     required
                     minLength={10}
                     maxLength={3000}
                   />
-                  <p className="text-xs text-gray-400">Include impact, urgency, and any blocker details.</p>
+                  <p className="text-xs text-slate-600">Include impact, urgency, and any blocker details.</p>
 
                   <button
                     type="submit"
                     disabled={issueBusy}
-                    className="btn btn-secondary w-full text-xs! py-2.5! border-rose-500/40! text-rose-100! hover:bg-rose-500/10! disabled:opacity-60 inline-flex items-center justify-center gap-2"
+                    className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 w-full text-xs! py-2.5! border-red-200! text-red-700! hover:bg-red-50! disabled:opacity-60 inline-flex items-center justify-center gap-2"
                   >
                     {issueBusy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                     Submit To Admin
                   </button>
                 </form>
 
-                <div className="mt-5 border-t border-gray-800/80 pt-4">
-                  <h5 className="text-xs text-gray-400 font-semibold">My Ticket History</h5>
+                <div className="mt-5 border-t border-slate-200 bg-white border border-slate-200 shadow-sm pt-4">
+                  <h5 className="text-xs text-slate-600 font-semibold">My Ticket History</h5>
                   <div className="mt-3 space-y-3 max-h-90 overflow-auto pr-1">
                     {myIssues.map((issue) => (
-                      <article key={issue._id} className="border-b border-gray-800/70 pb-3">
+                      <article key={issue._id} className="border-b border-slate-200 bg-white border border-slate-200 shadow-sm pb-3">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-semibold text-white leading-snug">{issue.title}</p>
+                          <p className="text-sm font-semibold text-slate-900 leading-snug">{issue.title}</p>
                           <span
                             className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border ${statusClassName(
                               issue.status
@@ -974,8 +1017,8 @@ export default function Community() {
                             {prettyIssueStatus(issue.status)}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2 line-clamp-3">{issue.description}</p>
-                        <div className="mt-2 text-[10px] text-gray-500 flex flex-wrap gap-2">
+                        <p className="text-xs text-slate-600 mt-2 line-clamp-3">{issue.description}</p>
+                        <div className="mt-2 text-[10px] text-slate-500 flex flex-wrap gap-2">
                           <span>{issue.category}</span>
                           <span>•</span>
                           <span>{issue.priority}</span>
@@ -988,21 +1031,21 @@ export default function Community() {
                             </>
                           ) : null}
                         </div>
-                        {issue.resolvedBy?.name ? <p className="mt-2 text-[10px] text-emerald-200">Resolved by {issue.resolvedBy.name}</p> : null}
+                        {issue.resolvedBy?.name ? <p className="mt-2 text-[10px] text-emerald-700">Resolved by {issue.resolvedBy.name}</p> : null}
                         {issue.adminNote ? (
-                          <p className="mt-2 text-xs text-amber-200 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+                          <p className="mt-2 text-xs text-amber-700 border border-amber-200 rounded-lg px-2.5 py-1.5">
                             Admin note: {issue.adminNote}
                           </p>
                         ) : null}
-                        <div className="mt-3 border-l border-gray-700/75 pl-2.5 py-1">
-                          <p className="text-[10px] text-gray-500 font-semibold">Timeline</p>
+                        <div className="mt-3 border-l border-slate-300/75 pl-2.5 py-1">
+                          <p className="text-[10px] text-slate-500 font-semibold">Timeline</p>
                           <div className="mt-2 space-y-1.5">
                             {buildIssueTimeline(issue).map((step) => (
                               <div key={step.id} className="flex items-start gap-2 text-[10px]">
-                                <CircleDashed size={11} className="text-blue-300 mt-0.5 shrink-0" />
+                                <CircleDashed size={11} className="text-blue-600 mt-0.5 shrink-0" />
                                 <div className="min-w-0">
-                                  <p className="text-gray-200">{step.label}</p>
-                                  <p className="text-gray-500 truncate">{step.detail}</p>
+                                  <p className="text-slate-700">{step.label}</p>
+                                  <p className="text-slate-500 truncate">{step.detail}</p>
                                   <p className="text-gray-600">{fmtDateTime(step.at)}</p>
                                 </div>
                               </div>
@@ -1013,7 +1056,7 @@ export default function Community() {
                     ))}
 
                     {myIssues.length === 0 && (
-                      <p className="text-sm text-gray-500 px-3 py-4 text-center">
+                      <p className="text-sm text-slate-500 px-3 py-4 text-center">
                         No issues submitted yet.
                       </p>
                     )}
@@ -1022,16 +1065,16 @@ export default function Community() {
               </section>
 
               {isStrictAdmin && (
-                <section className="border-y border-gray-800/80 py-4">
+                <section className="border-y border-slate-200 bg-white border border-slate-200 shadow-sm py-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <h4 className="text-sm font-semibold text-gray-200 inline-flex items-center gap-2">
-                      <ShieldCheck size={14} className="text-cyan-300" />
+                    <h4 className="text-sm font-semibold text-slate-700 inline-flex items-center gap-2">
+                      <ShieldCheck size={14} className="text-cyan-600" />
                       Admin Issue Inbox
                     </h4>
                     <select
                       value={adminIssueFilter}
                       onChange={(e) => setAdminIssueFilter(e.target.value)}
-                      className="ui-input text-sm! max-w-45"
+                      className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 text-sm! max-w-45"
                     >
                       <option value="All">All Statuses</option>
                       {ISSUE_STATUSES.map((status) => (
@@ -1047,8 +1090,8 @@ export default function Community() {
                       <article key={issue._id} className="py-4">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-sm md:text-base font-semibold text-white wrap-break-word">{issue.title}</p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-sm md:text-base font-semibold text-slate-900 wrap-break-word">{issue.title}</p>
+                            <p className="text-xs text-slate-500 mt-1">
                               {issue.createdBy?.name || 'Unknown'} • {issue.createdBy?.collegeId || 'No-ID'}
                             </p>
                           </div>
@@ -1070,9 +1113,9 @@ export default function Community() {
                           </div>
                         </div>
 
-                        <p className="mt-3 text-sm text-gray-300 leading-relaxed">{issue.description}</p>
+                        <p className="mt-3 text-sm text-slate-700 leading-relaxed">{issue.description}</p>
 
-                        <div className="mt-3 text-[10px] text-gray-500 flex flex-wrap gap-2">
+                        <div className="mt-3 text-[10px] text-slate-500 flex flex-wrap gap-2">
                           <span>{issue.category}</span>
                           <span>•</span>
                           <span>{fmtDateTime(issue.createdAt)}</span>
@@ -1083,23 +1126,23 @@ export default function Community() {
                             </>
                           ) : null}
                         </div>
-                        {issue.resolvedBy?.name ? <p className="mt-2 text-[10px] text-emerald-200">Resolved by {issue.resolvedBy.name}</p> : null}
+                        {issue.resolvedBy?.name ? <p className="mt-2 text-[10px] text-emerald-700">Resolved by {issue.resolvedBy.name}</p> : null}
 
                         {issue.adminNote ? (
-                          <p className="mt-2 text-xs text-amber-200 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+                          <p className="mt-2 text-xs text-amber-700 border border-amber-200 rounded-lg px-2.5 py-1.5">
                             Admin note: {issue.adminNote}
                           </p>
                         ) : null}
 
-                        <div className="mt-3 border-l border-gray-700/75 pl-2.5 py-1">
-                          <p className="text-[10px] text-gray-500 font-semibold">Timeline</p>
+                        <div className="mt-3 border-l border-slate-300/75 pl-2.5 py-1">
+                          <p className="text-[10px] text-slate-500 font-semibold">Timeline</p>
                           <div className="mt-2 space-y-1.5">
                             {buildIssueTimeline(issue).map((step) => (
                               <div key={step.id} className="flex items-start gap-2 text-[10px]">
-                                <CircleDashed size={11} className="text-blue-300 mt-0.5 shrink-0" />
+                                <CircleDashed size={11} className="text-blue-600 mt-0.5 shrink-0" />
                                 <div className="min-w-0">
-                                  <p className="text-gray-200">{step.label}</p>
-                                  <p className="text-gray-500 truncate">{step.detail}</p>
+                                  <p className="text-slate-700">{step.label}</p>
+                                  <p className="text-slate-500 truncate">{step.detail}</p>
                                   <p className="text-gray-600">{fmtDateTime(step.at)}</p>
                                 </div>
                               </div>
@@ -1107,24 +1150,24 @@ export default function Community() {
                           </div>
                         </div>
 
-                        <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-2">
+                        <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap gap-2">
                           <button
                             onClick={() => handleAdminIssueUpdate(issue, 'InReview')}
-                            className="text-xs px-3 py-1.5 rounded-lg border border-amber-500/35 text-amber-200 inline-flex items-center gap-1"
+                            className="text-xs px-3 py-1.5 rounded-lg border border-amber-200 text-amber-700 inline-flex items-center gap-1"
                           >
                             <CircleDashed size={12} />
                             In Review
                           </button>
                           <button
                             onClick={() => handleAdminIssueUpdate(issue, 'Resolved')}
-                            className="text-xs px-3 py-1.5 rounded-lg border border-emerald-500/35 text-emerald-200 inline-flex items-center gap-1"
+                            className="text-xs px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 inline-flex items-center gap-1"
                           >
                             <CheckCircle2 size={12} />
                             Resolve
                           </button>
                           <button
                             onClick={() => handleAdminIssueUpdate(issue, 'Rejected')}
-                            className="text-xs px-3 py-1.5 rounded-lg border border-rose-500/35 text-rose-200 inline-flex items-center gap-1"
+                            className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 inline-flex items-center gap-1"
                           >
                             <XCircle size={12} />
                             Reject
@@ -1136,7 +1179,7 @@ export default function Community() {
                     {adminVisibleIssues.length === 0 && (
                       <div className="text-center py-12">
                         <ShieldCheck className="mx-auto text-gray-600 mb-3" size={34} />
-                        <p className="text-sm font-semibold text-gray-300">No issues in this queue.</p>
+                        <p className="text-sm font-semibold text-slate-700">No issues in this queue.</p>
                       </div>
                     )}
                   </div>
@@ -1145,8 +1188,8 @@ export default function Community() {
             </div>
 
             {!isStrictAdmin && (
-              <div className="border border-cyan-500/25 bg-cyan-500/5 rounded-xl p-4 text-sm text-gray-300 inline-flex items-start gap-2 section-motion section-motion-delay-3">
-                <ShieldCheck size={15} className="text-cyan-300 mt-0.5" />
+              <div className="border border-blue-200 bg-cyan-500/5 rounded-xl p-4 text-sm text-slate-700 inline-flex items-start gap-2 section-motion section-motion-delay-3">
+                <ShieldCheck size={15} className="text-cyan-600 mt-0.5" />
                 Only admin can access full issue inbox and update statuses.
               </div>
             )}
@@ -1160,16 +1203,16 @@ export default function Community() {
 function SnapshotRail({ label, value, tone = 'cyan' }) {
   const toneClass =
     tone === 'blue'
-      ? 'border-blue-500/40 text-blue-100'
+      ? 'border-blue-300 text-blue-700'
       : tone === 'amber'
-      ? 'border-amber-500/40 text-amber-100'
+      ? 'border-amber-200 text-amber-800'
       : tone === 'emerald'
-      ? 'border-emerald-500/40 text-emerald-100'
-      : 'border-cyan-500/40 text-cyan-100';
+      ? 'border-emerald-200 text-emerald-800'
+      : 'border-blue-200 text-blue-700';
 
   return (
     <article className={`border-l-2 pl-3 ${toneClass}`}>
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-slate-600">{label}</p>
       <p className="text-lg font-semibold mt-1">{value}</p>
     </article>
   );

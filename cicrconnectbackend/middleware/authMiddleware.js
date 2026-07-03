@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { authorizeAction } = require('../utils/policyEngine');
 const { env } = require('../config/env');
 const logger = require('../utils/logger');
 
@@ -52,13 +53,14 @@ const isMutationBlockedForTemporaryAccess = (req) => {
 const protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
-      if (!token || token === 'undefined' || token === 'null') {
-        return res.status(401).json({ message: 'Not authorized, invalid token' });
-      }
+  if (token && token !== 'undefined' && token !== 'null') {
+    try {
 
       const decoded = jwt.verify(token, env.jwt.secret, {
         issuer: env.jwt.issuer,
@@ -119,7 +121,7 @@ const protect = async (req, res, next) => {
 };
 
 /**
- * @desc Authorize roles - restricts access based on User Role
+ * @desc Authorize roles - restricts access based on User Role (Legacy fallback)
  */
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -132,4 +134,23 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+/**
+ * @desc Advanced Policy Authorization - evaluates role, year, and contextual factors
+ */
+const authorizePolicy = (action, getContext = null) => {
+  return (req, res, next) => {
+    // If a getContext function is provided, call it to extract context (like targetUserId from params)
+    const context = getContext ? getContext(req) : {};
+    
+    const decision = authorizeAction(action, req.user, context);
+    if (!decision.allowed) {
+      return res.status(403).json({
+        code: 'POLICY_VIOLATION',
+        message: decision.reason || 'Access denied by policy engine.'
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { protect, authorize, authorizePolicy };

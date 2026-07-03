@@ -54,18 +54,18 @@ const AUDIENCE_LABELS = {
 };
 
 const TASK_STATUS_CLASS = {
-  Approved: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-  Submitted: 'text-blue-300 border-blue-500/40 bg-blue-500/10',
-  UnderReview: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
-  NeedsRevision: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
-  NotStarted: 'text-gray-300 border-gray-700 bg-gray-800/30',
+  Approved: 'text-emerald-600 border-emerald-200 bg-emerald-500/10',
+  Submitted: 'text-blue-600 border-blue-300 bg-blue-500/10',
+  UnderReview: 'text-cyan-600 border-blue-200 bg-cyan-500/10',
+  NeedsRevision: 'text-amber-600 border-amber-200 bg-amber-500/10',
+  NotStarted: 'text-slate-700 border-slate-300 bg-slate-50 border-slate-200 text-slate-600',
 };
 
 const SUBMISSION_STATUS_CLASS = {
-  Approved: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-  Submitted: 'text-blue-300 border-blue-500/40 bg-blue-500/10',
-  UnderReview: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
-  NeedsRevision: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
+  Approved: 'text-emerald-600 border-emerald-200 bg-emerald-500/10',
+  Submitted: 'text-blue-600 border-blue-300 bg-blue-500/10',
+  UnderReview: 'text-cyan-600 border-blue-200 bg-cyan-500/10',
+  NeedsRevision: 'text-amber-600 border-amber-200 bg-amber-500/10',
 };
 
 const dispatchToast = (message, type = 'info') => {
@@ -411,7 +411,7 @@ export default function LearningHub() {
 
   if (loading) {
     return (
-      <div className="ui-page pb-16 page-motion-c">
+      <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 page-motion-c">
         <DataLoading label="Loading Learning Hub..." />
       </div>
     );
@@ -419,7 +419,7 @@ export default function LearningHub() {
 
   if (error) {
     return (
-      <div className="ui-page pb-16 page-motion-c">
+      <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 page-motion-c">
         <DataError label={error} onRetry={loadData} />
       </div>
     );
@@ -427,14 +427,14 @@ export default function LearningHub() {
 
   if (!config?.learningHubEnabled && !isAdminOrHead) {
     return (
-      <div className="ui-page pb-16 page-motion-c">
+      <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 page-motion-c">
         <DataEmpty label="Learning Hub is currently disabled by admin controls." />
       </div>
     );
   }
 
   return (
-    <div className="ui-page pb-16 space-y-8 page-motion-c">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 space-y-8 page-motion-c">
       <section className="section-motion section-motion-delay-1">
         <PageHeader
           eyebrow="Member Growth"
@@ -446,7 +446,7 @@ export default function LearningHub() {
           icon={BookOpenCheck}
           badge={
             <>
-              <Sparkles size={13} className="text-blue-300" />
+              <Sparkles size={13} className="text-blue-600" />
               {isAdminOrHead
                 ? 'Admin Control Active'
                 : isJuniorMember
@@ -476,12 +476,12 @@ export default function LearningHub() {
       </section>
 
       <section className="grid grid-cols-1 2xl:grid-cols-12 gap-6 section-motion section-motion-delay-2">
-        <article className="2xl:col-span-5 border border-gray-800 rounded-[1.6rem] p-5 md:p-6 space-y-4 ui-toolbar-sticky">
+        <article className="2xl:col-span-5 border border-slate-200 rounded-[1.6rem] p-5 md:p-6 space-y-4 sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-slate-200 py-2">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-              <Lightbulb size={15} className="text-cyan-300" /> Recommended Queue
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+              <Lightbulb size={15} className="text-cyan-600" /> Recommended Queue
             </h2>
-            <span className="text-[10px] uppercase tracking-widest text-gray-500">
+            <span className="text-[10px] uppercase tracking-widest text-slate-500">
               {overview?.recommendedTasks?.length || 0} tasks
             </span>
           </div>
@@ -493,10 +493,10 @@ export default function LearningHub() {
                   type="button"
                   key={`${row.trackId}-${row.moduleIndex}-${row.taskIndex}`}
                   onClick={() => handleTrackSelect(row.trackId)}
-                  className="w-full text-left rounded-xl border border-gray-800 px-3 py-3 hover:border-blue-500/40 transition-colors"
+                  className="w-full text-left rounded-xl border border-slate-200 px-3 py-3 hover:border-blue-300 transition-colors"
                 >
-                  <p className="text-sm font-bold text-white">{row.taskTitle}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm font-bold text-slate-900">{row.taskTitle}</p>
+                  <p className="text-xs text-slate-600 mt-1">
                     {row.trackTitle} • {row.moduleTitle}
                   </p>
                   <div className="mt-2 flex items-center justify-between">
@@ -507,7 +507,7 @@ export default function LearningHub() {
                     >
                       <Flag size={11} /> {row.status === 'NotStarted' ? 'Start' : row.status}
                     </span>
-                    <span className="text-xs text-cyan-200">{row.points || 0} pts</span>
+                    <span className="text-xs text-cyan-700">{row.points || 0} pts</span>
                   </div>
                 </button>
               ))}
@@ -517,12 +517,12 @@ export default function LearningHub() {
           )}
         </article>
 
-        <article className="2xl:col-span-7 border border-gray-800 rounded-[1.6rem] p-5 md:p-6 space-y-4">
+        <article className="2xl:col-span-7 border border-slate-200 rounded-[1.6rem] p-5 md:p-6 space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-              <Brain size={15} className="text-blue-300" /> Learning Tracks
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+              <Brain size={15} className="text-blue-600" /> Learning Tracks
             </h2>
-            <span className="text-[10px] uppercase tracking-widest text-gray-500">{tracks.length} available</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-500">{tracks.length} available</span>
           </div>
 
           {tracks.length ? (
@@ -536,17 +536,17 @@ export default function LearningHub() {
                     onClick={() => handleTrackSelect(track._id)}
                     className={`rounded-xl border px-4 py-3 text-left transition-colors ${
                       String(selectedTrackId) === String(track._id)
-                        ? 'border-blue-500/55 bg-blue-500/10'
-                        : 'border-gray-800 hover:border-blue-500/35'
+                        ? 'border-blue-300 bg-blue-500/10'
+                        : 'border-slate-200 hover:border-blue-300'
                     }`}
                   >
-                    <p className="text-sm font-bold text-white line-clamp-2">{track.title}</p>
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{track.summary || 'No summary provided.'}</p>
+                    <p className="text-sm font-bold text-slate-900 line-clamp-2">{track.title}</p>
+                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">{track.summary || 'No summary provided.'}</p>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="text-[10px] uppercase tracking-widest text-cyan-200">
+                      <span className="text-[10px] uppercase tracking-widest text-cyan-700">
                         {AUDIENCE_LABELS[track.targetAudience] || track.targetAudience}
                       </span>
-                      <span className="text-xs text-gray-300">{track.progressPercent || 0}%</span>
+                      <span className="text-xs text-slate-700">{track.progressPercent || 0}%</span>
                     </div>
                     <div className="mt-2 h-1.5 rounded-full bg-gray-800 overflow-hidden">
                       <motion.div
@@ -585,21 +585,21 @@ export default function LearningHub() {
       </section>
 
       {config?.showLeaderboard && overview?.leaderboard?.length ? (
-        <section className="border border-gray-800 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3">
+        <section className="border border-slate-200 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-              <Trophy size={15} className="text-amber-300" /> Learning Leaderboard
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+              <Trophy size={15} className="text-amber-600" /> Learning Leaderboard
             </h2>
-            <span className="text-[10px] uppercase tracking-widest text-gray-500">Top performers</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-500">Top performers</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {overview.leaderboard.map((entry) => (
-              <article key={`${entry.member._id}-${entry.rank}`} className="rounded-xl border border-gray-800 px-4 py-3">
+              <article key={`${entry.member._id}-${entry.rank}`} className="rounded-xl border border-slate-200 px-4 py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-white">#{entry.rank} {entry.member.name}</p>
-                  <span className="text-xs text-cyan-200">{entry.points} pts</span>
+                  <p className="text-sm font-bold text-slate-900">#{entry.rank} {entry.member.name}</p>
+                  <span className="text-xs text-cyan-700">{entry.points} pts</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-600 mt-1">
                   {entry.member.collegeId} • Year {entry.member.year || 'N/A'} • {entry.tasks} tasks
                 </p>
               </article>
@@ -608,20 +608,20 @@ export default function LearningHub() {
         </section>
       ) : null}
 
-      <section className="border border-gray-800 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3">
+      <section className="border border-slate-200 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-            <ClipboardCheck size={15} className="text-emerald-300" /> My Submission Timeline
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+            <ClipboardCheck size={15} className="text-emerald-600" /> My Submission Timeline
           </h2>
-          <span className="text-[10px] uppercase tracking-widest text-gray-500">{mySubmissions.length} records</span>
+          <span className="text-[10px] uppercase tracking-widest text-slate-500">{mySubmissions.length} records</span>
         </div>
 
         {mySubmissions.length ? (
           <div className="space-y-3 max-h-[24rem] overflow-y-auto pr-1">
             {mySubmissions.slice(0, 24).map((row) => (
-              <article key={row._id} className="rounded-xl border border-gray-800 px-4 py-3">
+              <article key={row._id} className="rounded-xl border border-slate-200 px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-bold text-slate-900">
                     {row.taskTitle || `Module ${row.moduleIndex + 1} • Task ${row.taskIndex + 1}`}
                   </p>
                   <span
@@ -632,12 +632,12 @@ export default function LearningHub() {
                     <Eye size={11} /> {row.status}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-600 mt-1">
                   {row.track?.title || 'Track'} • Updated {fmtDateTime(row.updatedAt)}
                 </p>
-                {row.reviewNote ? <p className="text-xs text-amber-200 mt-2">Review: {row.reviewNote}</p> : null}
+                {row.reviewNote ? <p className="text-xs text-amber-700 mt-2">Review: {row.reviewNote}</p> : null}
                 {row.pointsAwarded ? (
-                  <p className="text-xs text-emerald-300 mt-2">Points: {row.pointsAwarded}</p>
+                  <p className="text-xs text-emerald-600 mt-2">Points: {row.pointsAwarded}</p>
                 ) : null}
               </article>
             ))}
@@ -649,12 +649,12 @@ export default function LearningHub() {
 
       {isAdminOrHead ? (
         <>
-          <section className="border border-gray-800 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3 space-y-5">
+          <section className="border border-slate-200 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3 space-y-5">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
                 <Settings2 size={15} className="text-indigo-300" /> Admin Engagement Controls
               </h2>
-              <button type="button" onClick={saveConfig} className="btn btn-primary" disabled={configSaving}>
+              <button type="button" onClick={saveConfig} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" disabled={configSaving}>
                 {configSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                 Save Controls
               </button>
@@ -703,7 +703,7 @@ export default function LearningHub() {
                   onChange={(event) =>
                     setAdminConfigDraft((prev) => ({ ...prev, spotlightTitle: event.target.value }))
                   }
-                  className="ui-input"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                   placeholder="Growth Program"
                 />
               </label>
@@ -715,30 +715,30 @@ export default function LearningHub() {
                     setAdminConfigDraft((prev) => ({ ...prev, spotlightMessage: event.target.value }))
                   }
                   rows={3}
-                  className="ui-input resize-none"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none"
                 />
               </label>
             </div>
           </section>
 
           <section className="grid grid-cols-1 xl:grid-cols-12 gap-6 section-motion section-motion-delay-3">
-            <article className="xl:col-span-6 border border-gray-800 rounded-[1.6rem] p-5 md:p-6 space-y-4">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-                <Plus size={15} className="text-cyan-300" /> Create New Track
+            <article className="xl:col-span-6 border border-slate-200 rounded-[1.6rem] p-5 md:p-6 space-y-4">
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                <Plus size={15} className="text-cyan-600" /> Create New Track
               </h2>
 
               <form onSubmit={createTrack} className="space-y-3">
                 <input
                   value={composer.title}
                   onChange={(event) => setComposer((prev) => ({ ...prev, title: event.target.value }))}
-                  className="ui-input"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                   placeholder="Track title"
                   required
                 />
                 <textarea
                   value={composer.summary}
                   onChange={(event) => setComposer((prev) => ({ ...prev, summary: event.target.value }))}
-                  className="ui-input resize-none"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none"
                   rows={3}
                   placeholder="What this track helps members achieve"
                 />
@@ -747,7 +747,7 @@ export default function LearningHub() {
                   <select
                     value={composer.targetAudience}
                     onChange={(event) => setComposer((prev) => ({ ...prev, targetAudience: event.target.value }))}
-                    className="ui-input"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                   >
                     {AUDIENCE_OPTIONS.map((option) => (
                       <option key={option} value={option}>
@@ -758,7 +758,7 @@ export default function LearningHub() {
                   <select
                     value={composer.level}
                     onChange={(event) => setComposer((prev) => ({ ...prev, level: event.target.value }))}
-                    className="ui-input"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                   >
                     {LEVEL_OPTIONS.map((option) => (
                       <option key={option} value={option}>
@@ -777,22 +777,22 @@ export default function LearningHub() {
                     onChange={(event) =>
                       setComposer((prev) => ({ ...prev, estimatedHours: Number(event.target.value || 1) }))
                     }
-                    className="ui-input"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                     placeholder="Hours"
                   />
                   <input
                     value={composer.tags}
                     onChange={(event) => setComposer((prev) => ({ ...prev, tags: event.target.value }))}
-                    className="ui-input sm:col-span-2"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 sm:col-span-2"
                     placeholder="Tags (comma separated)"
                   />
                 </div>
 
-                <div className="border border-gray-800 rounded-xl p-3 space-y-3">
+                <div className="border border-slate-200 rounded-xl p-3 space-y-3">
                   <input
                     value={composer.moduleTitle}
                     onChange={(event) => setComposer((prev) => ({ ...prev, moduleTitle: event.target.value }))}
-                    className="ui-input"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                     placeholder="Module title"
                     required
                   />
@@ -801,7 +801,7 @@ export default function LearningHub() {
                     onChange={(event) =>
                       setComposer((prev) => ({ ...prev, moduleDescription: event.target.value }))
                     }
-                    className="ui-input resize-none"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none"
                     rows={2}
                     placeholder="Module description"
                   />
@@ -819,7 +819,7 @@ export default function LearningHub() {
                               ),
                             }))
                           }
-                          className="ui-input md:col-span-5"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                           placeholder={`Task ${index + 1} title`}
                         />
                         <input
@@ -832,7 +832,7 @@ export default function LearningHub() {
                               ),
                             }))
                           }
-                          className="ui-input md:col-span-5"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                           placeholder="Task description"
                         />
                         <input
@@ -848,7 +848,7 @@ export default function LearningHub() {
                               ),
                             }))
                           }
-                          className="ui-input md:col-span-2"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-2"
                           placeholder="Points"
                         />
                       </div>
@@ -857,7 +857,7 @@ export default function LearningHub() {
 
                   <button
                     type="button"
-                    className="btn btn-ghost"
+                    className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                     onClick={() =>
                       setComposer((prev) => ({
                         ...prev,
@@ -881,7 +881,7 @@ export default function LearningHub() {
                               ),
                             }))
                           }
-                          className="ui-input md:col-span-4"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-4"
                           placeholder="Resource label"
                         />
                         <input
@@ -894,7 +894,7 @@ export default function LearningHub() {
                               ),
                             }))
                           }
-                          className="ui-input md:col-span-6"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-6"
                           placeholder="Resource URL"
                         />
                         <select
@@ -907,7 +907,7 @@ export default function LearningHub() {
                               ),
                             }))
                           }
-                          className="ui-input md:col-span-2"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-2"
                         >
                           {RESOURCE_TYPES.map((type) => (
                             <option key={type} value={type}>
@@ -921,7 +921,7 @@ export default function LearningHub() {
 
                   <button
                     type="button"
-                    className="btn btn-ghost"
+                    className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                     onClick={() =>
                       setComposer((prev) => ({
                         ...prev,
@@ -934,7 +934,7 @@ export default function LearningHub() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <label className="inline-flex items-center gap-2 text-xs text-gray-300">
+                  <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={composer.publishNow}
@@ -942,7 +942,7 @@ export default function LearningHub() {
                     />
                     Publish immediately
                   </label>
-                  <label className="inline-flex items-center gap-2 text-xs text-gray-300">
+                  <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={composer.featured}
@@ -952,15 +952,15 @@ export default function LearningHub() {
                   </label>
                 </div>
 
-                <button type="submit" className="btn btn-primary" disabled={composerBusy}>
+                <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" disabled={composerBusy}>
                   {composerBusy ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Create Track
                 </button>
               </form>
             </article>
 
-            <article className="xl:col-span-6 border border-gray-800 rounded-[1.6rem] p-5 md:p-6 space-y-4">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-                <Wrench size={15} className="text-amber-300" /> Track Management
+            <article className="xl:col-span-6 border border-slate-200 rounded-[1.6rem] p-5 md:p-6 space-y-4">
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                <Wrench size={15} className="text-amber-600" /> Track Management
               </h2>
 
               <div className="grid grid-cols-3 gap-3">
@@ -974,27 +974,27 @@ export default function LearningHub() {
                   {adminRows.map((track) => {
                     const taskCount = Number(track.totalTasks || 0);
                     return (
-                      <article key={track._id} className="rounded-xl border border-gray-800 px-4 py-3 space-y-3">
+                      <article key={track._id} className="rounded-xl border border-slate-200 px-4 py-3 space-y-3">
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div>
-                            <p className="text-sm font-bold text-white">{track.title}</p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-sm font-bold text-slate-900">{track.title}</p>
+                            <p className="text-xs text-slate-600 mt-1">
                               {AUDIENCE_LABELS[track.targetAudience] || track.targetAudience} • {track.level} • {taskCount} tasks
                             </p>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {track.featured ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-amber-500/45 bg-amber-500/10 text-amber-200">
+                              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-amber-200 bg-amber-500/10 text-amber-700">
                                 <Star size={11} /> Featured
                               </span>
                             ) : null}
                             <span
                               className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${
                                 track.isArchived
-                                  ? 'border-rose-500/45 bg-rose-500/10 text-rose-200'
+                                  ? 'border-red-200 bg-rose-500/10 text-red-600'
                                   : track.isPublished
-                                  ? 'border-emerald-500/45 bg-emerald-500/10 text-emerald-200'
-                                  : 'border-gray-700 bg-gray-800/30 text-gray-300'
+                                  ? 'border-emerald-200 bg-emerald-500/10 text-emerald-700'
+                                  : 'border-slate-300 bg-slate-50 border-slate-200 text-slate-600 text-slate-700'
                               }`}
                             >
                               {track.isArchived ? 'Archived' : track.isPublished ? 'Published' : 'Draft'}
@@ -1005,7 +1005,7 @@ export default function LearningHub() {
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
-                            className="btn btn-secondary"
+                            className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                             onClick={() => setTrackPublishState(track, !track.isPublished)}
                             disabled={track.isArchived || trackActionBusy === `publish:${track._id}`}
                           >
@@ -1021,7 +1021,7 @@ export default function LearningHub() {
 
                           <button
                             type="button"
-                            className="btn btn-secondary"
+                            className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                             onClick={() => setTrackFeaturedState(track, !track.featured)}
                             disabled={trackActionBusy === `feature:${track._id}`}
                           >
@@ -1035,7 +1035,7 @@ export default function LearningHub() {
 
                           <button
                             type="button"
-                            className="btn btn-danger"
+                            className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                             onClick={() => setTrackArchiveState(track, !track.isArchived)}
                             disabled={trackActionBusy === `archive:${track._id}`}
                           >
@@ -1057,12 +1057,12 @@ export default function LearningHub() {
             </article>
           </section>
 
-          <section className="border border-gray-800 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3">
+          <section className="border border-slate-200 rounded-[1.6rem] p-5 md:p-6 section-motion section-motion-delay-3">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-                <ClipboardCheck size={15} className="text-cyan-300" /> Submission Review Queue
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                <ClipboardCheck size={15} className="text-cyan-600" /> Submission Review Queue
               </h2>
-              <span className="text-[10px] uppercase tracking-widest text-gray-500">{reviewRows.length} submissions</span>
+              <span className="text-[10px] uppercase tracking-widest text-slate-500">{reviewRows.length} submissions</span>
             </div>
 
             {reviewRows.length ? (
@@ -1075,11 +1075,11 @@ export default function LearningHub() {
                   };
                   const isBusy = reviewBusyId === row._id;
                   return (
-                    <article key={row._id} className="rounded-xl border border-gray-800 px-4 py-3 space-y-3">
+                    <article key={row._id} className="rounded-xl border border-slate-200 px-4 py-3 space-y-3">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-bold text-white">{row.member?.name || 'Member'} • {row.taskTitle}</p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-sm font-bold text-slate-900">{row.member?.name || 'Member'} • {row.taskTitle}</p>
+                          <p className="text-xs text-slate-600 mt-1">
                             {row.track?.title || 'Track'} • Year {row.member?.year || 'N/A'} • {fmtDateTime(row.submittedAt)}
                           </p>
                         </div>
@@ -1092,9 +1092,9 @@ export default function LearningHub() {
                         </span>
                       </div>
 
-                      <p className="text-xs text-gray-300 line-clamp-2">{row.evidenceText || row.evidenceLink || 'No evidence text.'}</p>
+                      <p className="text-xs text-slate-700 line-clamp-2">{row.evidenceText || row.evidenceLink || 'No evidence text.'}</p>
                       {row.evidenceLink ? (
-                        <a href={row.evidenceLink} target="_blank" rel="noreferrer" className="text-xs text-cyan-300 hover:text-cyan-200">
+                        <a href={row.evidenceLink} target="_blank" rel="noreferrer" className="text-xs text-cyan-600 hover:text-cyan-700">
                           {row.evidenceLink}
                         </a>
                       ) : null}
@@ -1108,7 +1108,7 @@ export default function LearningHub() {
                               [row._id]: { ...draft, status: event.target.value },
                             }))
                           }
-                          className="ui-input md:col-span-3"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-3"
                         >
                           {REVIEW_OPTIONS.map((option) => (
                             <option key={option} value={option}>
@@ -1127,7 +1127,7 @@ export default function LearningHub() {
                               [row._id]: { ...draft, pointsAwarded: Number(event.target.value || 0) },
                             }))
                           }
-                          className="ui-input md:col-span-2"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-2"
                           placeholder="Points"
                         />
                         <input
@@ -1138,12 +1138,12 @@ export default function LearningHub() {
                               [row._id]: { ...draft, reviewNote: event.target.value },
                             }))
                           }
-                          className="ui-input md:col-span-5"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                           placeholder="Review note"
                         />
                         <button
                           type="button"
-                          className="btn btn-primary md:col-span-2"
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-2"
                           onClick={() => applyReview(row)}
                           disabled={isBusy}
                         >
@@ -1175,18 +1175,18 @@ function TrackDetail({
   canSubmit,
 }) {
   return (
-    <section className="rounded-xl border border-gray-800 p-4 md:p-5 space-y-4">
+    <section className="rounded-xl border border-slate-200 p-4 md:p-5 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-            <BookOpenCheck size={14} className="text-cyan-300" /> Selected Track
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+            <BookOpenCheck size={14} className="text-cyan-600" /> Selected Track
           </p>
-          <h3 className="text-xl font-black text-white mt-2">{track.title}</h3>
-          <p className="text-sm text-gray-400 mt-1">{track.summary || 'No summary provided.'}</p>
+          <h3 className="text-xl font-black text-slate-900 mt-2">{track.title}</h3>
+          <p className="text-sm text-slate-600 mt-1">{track.summary || 'No summary provided.'}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-cyan-200">{track.progressPercent || 0}% complete</p>
-          <p className="text-[10px] uppercase tracking-widest text-gray-500 mt-1">
+          <p className="text-xs text-cyan-700">{track.progressPercent || 0}% complete</p>
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 mt-1">
             {track.approvedCount || 0}/{track.totalTasks || 0} approved
           </p>
         </div>
@@ -1194,10 +1194,10 @@ function TrackDetail({
 
       <div className="space-y-3">
         {(track.modules || []).map((module) => (
-          <article key={`${track._id}-module-${module.index}`} className="rounded-xl border border-gray-800 px-4 py-3 space-y-3">
+          <article key={`${track._id}-module-${module.index}`} className="rounded-xl border border-slate-200 px-4 py-3 space-y-3">
             <div>
-              <p className="text-sm font-bold text-white">{module.title}</p>
-              {module.description ? <p className="text-xs text-gray-400 mt-1">{module.description}</p> : null}
+              <p className="text-sm font-bold text-slate-900">{module.title}</p>
+              {module.description ? <p className="text-xs text-slate-600 mt-1">{module.description}</p> : null}
             </div>
 
             {module.resources?.length ? (
@@ -1208,7 +1208,7 @@ function TrackDetail({
                     href={resource.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest border border-cyan-500/30 text-cyan-200 hover:border-cyan-400/55"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest border border-blue-200 text-cyan-700 hover:border-blue-200"
                   >
                     <Sparkles size={11} /> {resource.type}: {resource.label}
                   </a>
@@ -1223,14 +1223,14 @@ function TrackDetail({
                 const busy = submittingTaskKey === taskKey;
 
                 return (
-                  <div key={taskKey} className="rounded-lg border border-gray-800 px-3 py-3">
+                  <div key={taskKey} className="rounded-lg border border-slate-200 px-3 py-3">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold text-white">{task.title}</p>
-                        <p className="text-xs text-gray-400 mt-1">{task.description || 'Complete this activity and submit your proof.'}</p>
+                        <p className="text-sm font-semibold text-slate-900">{task.title}</p>
+                        <p className="text-xs text-slate-600 mt-1">{task.description || 'Complete this activity and submit your proof.'}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-cyan-200">{task.points || 0} pts</span>
+                        <span className="text-xs text-cyan-700">{task.points || 0} pts</span>
                         <span
                           className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${
                             TASK_STATUS_CLASS[task.status] || TASK_STATUS_CLASS.NotStarted
@@ -1246,18 +1246,18 @@ function TrackDetail({
                         <input
                           value={draft.evidenceText}
                           onChange={(event) => updateSubmissionDraft(taskKey, 'evidenceText', event.target.value)}
-                          className="ui-input md:col-span-5"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                           placeholder="What did you complete?"
                         />
                         <input
                           value={draft.evidenceLink}
                           onChange={(event) => updateSubmissionDraft(taskKey, 'evidenceLink', event.target.value)}
-                          className="ui-input md:col-span-5"
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                           placeholder="URL (GitHub/Doc/Video/etc.)"
                         />
                         <button
                           type="button"
-                          className="btn btn-primary md:col-span-2"
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-2"
                           onClick={() => onSubmitTask(track._id, module.index, task.index)}
                           disabled={busy || !canSubmit}
                         >
@@ -1275,7 +1275,7 @@ function TrackDetail({
       </div>
 
       {!canSubmit && !isAdminOrHead ? (
-        <p className="text-xs text-amber-200">Submissions are temporarily paused by admin controls.</p>
+        <p className="text-xs text-amber-700">Submissions are temporarily paused by admin controls.</p>
       ) : null}
     </section>
   );
@@ -1283,16 +1283,16 @@ function TrackDetail({
 
 function ToggleCard({ icon: Icon, label, value, onChange }) {
   return (
-    <div className="rounded-xl border border-gray-800 px-4 py-3 flex items-center justify-between gap-3">
+    <div className="rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
       <div className="inline-flex items-center gap-2">
-        <Icon size={14} className="text-cyan-300" />
-        <span className="text-xs uppercase tracking-widest text-gray-300">{label}</span>
+        <Icon size={14} className="text-cyan-600" />
+        <span className="text-xs uppercase tracking-widest text-slate-700">{label}</span>
       </div>
       <button
         type="button"
         onClick={() => onChange(!value)}
         className={`relative h-7 w-12 rounded-full border transition-colors ${
-          value ? 'border-emerald-500/50 bg-emerald-500/20' : 'border-gray-700 bg-gray-800/40'
+          value ? 'border-emerald-200 bg-emerald-500/20' : 'border-slate-300 bg-slate-50 border-slate-200 text-slate-600'
         }`}
       >
         <span
@@ -1307,30 +1307,30 @@ function ToggleCard({ icon: Icon, label, value, onChange }) {
 
 function InsightCard({ icon: Icon, label, value }) {
   return (
-    <article className="rounded-2xl border border-gray-800 px-5 py-4">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-black inline-flex items-center gap-1">
-        <Icon size={12} className="text-cyan-300" /> {label}
+    <article className="rounded-2xl border border-slate-200 px-5 py-4">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black inline-flex items-center gap-1">
+        <Icon size={12} className="text-cyan-600" /> {label}
       </p>
-      <p className="text-2xl font-black text-white mt-2">{value}</p>
+      <p className="text-2xl font-black text-slate-900 mt-2">{value}</p>
     </article>
   );
 }
 
 function MiniStat({ label, value }) {
   return (
-    <div className="rounded-xl border border-gray-800 px-3 py-3 text-center">
-      <p className="text-[10px] uppercase tracking-widest text-gray-500">{label}</p>
-      <p className="text-lg font-black text-white mt-1">{value}</p>
+    <div className="rounded-xl border border-slate-200 px-3 py-3 text-center">
+      <p className="text-[10px] uppercase tracking-widest text-slate-500">{label}</p>
+      <p className="text-lg font-black text-slate-900 mt-1">{value}</p>
     </div>
   );
 }
 
 function StatChip({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-xl border border-gray-800 px-3 py-2 inline-flex items-center gap-2 text-xs text-gray-300">
-      <Icon size={13} className="text-cyan-300" />
+    <div className="rounded-xl border border-slate-200 px-3 py-2 inline-flex items-center gap-2 text-xs text-slate-700">
+      <Icon size={13} className="text-cyan-600" />
       <span className="uppercase tracking-widest text-[10px]">{label}</span>
-      <span className="font-black text-white">{value}</span>
+      <span className="font-black text-slate-900">{value}</span>
     </div>
   );
 }

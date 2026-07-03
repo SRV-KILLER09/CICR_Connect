@@ -1,37 +1,30 @@
+const nodemailer = require('nodemailer');
+
 const sendEmail = async (options) => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is not configured");
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    throw new Error("Gmail credentials (GMAIL_USER and GMAIL_APP_PASSWORD) are not configured");
   }
 
-  if (!process.env.RESEND_FROM_EMAIL) {
-    throw new Error("RESEND_FROM_EMAIL is not configured");
-  }
+  // Create a transporter using Gmail
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
 
-  const payload = {
-    from: process.env.RESEND_FROM_EMAIL,
-    to: [options.email],
+  const mailOptions = {
+    from: `"CICR Connect" <${process.env.GMAIL_USER}>`,
+    to: options.email || options.to || process.env.GMAIL_USER, // default to self if bulk sending via BCC
+    bcc: options.bcc, // Array or comma-separated string of emails
     subject: options.subject,
     html: options.message,
   };
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const message = data?.message || "Failed to send email via Resend";
-    throw new Error(message);
-  }
-
-  console.log("✅ Email sent via Resend:", data?.id || "unknown-id");
-  return data;
+  const info = await transporter.sendMail(mailOptions);
+  console.log("✅ Email sent via Gmail:", info.messageId);
+  return info;
 };
 
 module.exports = sendEmail;

@@ -42,7 +42,7 @@ const guidelineSections = [
 
 export default function Guidelines() {
   return (
-    <div className="ui-page max-w-6xl pb-10 md:pb-14 space-y-6 page-motion-d">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl pb-10 md:pb-14 space-y-6 page-motion-d">
       <section className="section-motion section-motion-delay-1">
         <PageHeader
           eyebrow="CICR Handbook"
@@ -51,7 +51,7 @@ export default function Guidelines() {
           icon={ShieldCheck}
           badge={
             <>
-              <Sparkles size={13} className="text-cyan-300" />
+              <Sparkles size={13} className="text-cyan-600" />
               Updated for current workflow standards
             </>
           }
@@ -60,12 +60,12 @@ export default function Guidelines() {
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 pro-stagger section-motion section-motion-delay-2">
         {guidelineSections.map(({ icon: Icon, title, points }) => (
-          <article key={title} className="border border-gray-800/75 rounded-2xl p-5 md:p-6 pro-hover-lift">
-            <div className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-cyan-500/12 border border-cyan-400/20 text-cyan-300">
+          <article key={title} className="bg-white border border-slate-200 shadow-sm border border-slate-200 rounded-2xl p-5 md:p-6 pro-hover-lift">
+            <div className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-cyan-500/12 border border-blue-200 text-cyan-600">
               <Icon size={18} />
             </div>
-            <h2 className="text-lg font-black text-white mt-4">{title}</h2>
-            <ul className="mt-3 space-y-2.5 text-sm text-gray-300 leading-relaxed">
+            <h2 className="text-lg font-black text-slate-900 mt-4">{title}</h2>
+            <ul className="mt-3 space-y-2.5 text-sm text-slate-700 leading-relaxed">
               {points.map((point) => (
                 <li key={point} className="flex items-start gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-cyan-300/80 shrink-0" />
@@ -77,10 +77,10 @@ export default function Guidelines() {
         ))}
       </section>
 
-      <section className="rounded-2xl border border-gray-800 px-5 py-4 section-motion section-motion-delay-3">
-        <p className="text-xs md:text-sm text-gray-400">
+      <section className="rounded-2xl border border-slate-200 px-5 py-4 section-motion section-motion-delay-3">
+        <p className="text-xs md:text-sm text-slate-600">
           Need a new rule or exception?
-          <span className="text-gray-200"> Propose it in the Community page with context, impact, and owner.</span>
+          <span className="text-slate-700"> Propose it in the Community page with context, impact, and owner.</span>
         </p>
       </section>
     </div>

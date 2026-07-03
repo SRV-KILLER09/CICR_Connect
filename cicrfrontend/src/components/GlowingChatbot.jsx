@@ -173,13 +173,13 @@ export default function GlowingChatbot() {
             {/* header */}
             <div className="flex items-center gap-3 px-4 py-3 cb-header">
               <div className="w-9 h-9 rounded-xl cb-header-icon flex items-center justify-center">
-                <Sparkles size={17} className="text-white" strokeWidth={2.2} />
+                <Sparkles size={17} className="text-slate-900" strokeWidth={2.2} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-bold text-white leading-tight cb-font">CICR Assistant</p>
+                <p className="text-[13px] font-bold text-slate-900 leading-tight cb-font">CICR Assistant</p>
                 <p className="text-[10px] cb-header-sub leading-tight cb-font">Only answers CICR-related questions</p>
               </div>
-              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors" aria-label="Close">
+              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 pro-hover-lift transition-colors" aria-label="Close">
                 <X size={16} />
               </button>
             </div>
@@ -266,7 +266,7 @@ export default function GlowingChatbot() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about CICR…"
                 disabled={busy}
-                className="flex-1 bg-transparent border-0 outline-none text-[13px] text-white placeholder-gray-600 cb-font disabled:opacity-40"
+                className="flex-1 bg-transparent border-0 outline-none text-[13px] text-slate-900 placeholder-gray-600 cb-font disabled:opacity-40"
               />
               <button type="submit" disabled={busy || !input.trim()} className="cb-send-btn" aria-label="Send">
                 {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}

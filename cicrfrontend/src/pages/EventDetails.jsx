@@ -30,17 +30,17 @@ const formatDate = (value) => {
 
 const statusTone = (status) => {
   const normalized = String(status || '').toLowerCase();
-  if (normalized === 'scheduled') return 'text-cyan-200 border-cyan-500/40 bg-cyan-500/10';
-  if (normalized === 'completed') return 'text-emerald-200 border-emerald-500/40 bg-emerald-500/10';
-  return 'text-rose-200 border-rose-500/40 bg-rose-500/10';
+  if (normalized === 'scheduled') return 'text-cyan-700 border-blue-200 bg-cyan-500/10';
+  if (normalized === 'completed') return 'text-emerald-700 border-emerald-200 bg-emerald-500/10';
+  return 'text-red-600 border-red-200 bg-rose-500/10';
 };
 
 const projectStatusTone = (status) => {
   const normalized = String(status || '').toLowerCase();
-  if (normalized === 'completed') return 'text-emerald-200 border-emerald-500/35 bg-emerald-500/10';
-  if (normalized === 'awaiting review') return 'text-amber-200 border-amber-500/35 bg-amber-500/10';
-  if (normalized === 'delayed' || normalized === 'on-hold') return 'text-rose-200 border-rose-500/35 bg-rose-500/10';
-  return 'text-cyan-100 border-cyan-500/35 bg-cyan-500/10';
+  if (normalized === 'completed') return 'text-emerald-700 border-emerald-200 bg-emerald-500/10';
+  if (normalized === 'awaiting review') return 'text-amber-700 border-amber-200 bg-amber-500/10';
+  if (normalized === 'delayed' || normalized === 'on-hold') return 'text-red-600 border-red-200 bg-rose-500/10';
+  return 'text-blue-700 border-blue-200 bg-cyan-500/10';
 };
 
 const initials = (name) =>
@@ -253,11 +253,11 @@ export default function EventDetails() {
 
   if (!event) {
     return (
-      <div className="ui-page max-w-5xl space-y-5 page-motion-b">
-        <Link to="/events" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white">
+      <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 max-w-5xl space-y-5 page-motion-b">
+        <Link to="/events" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900">
           <ArrowLeft size={14} /> Back to events
         </Link>
-        <div className="border border-gray-800 p-8">
+        <div className="border border-slate-200 p-8">
           <p className="text-red-300 font-semibold">Event not found.</p>
         </div>
       </div>
@@ -265,21 +265,21 @@ export default function EventDetails() {
   }
 
   return (
-    <div className="ui-page max-w-7xl pb-16 page-motion-c relative">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl pb-16 page-motion-c relative">
       <div className="pointer-events-none absolute -top-20 left-1/2 h-72 w-[82%] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
       <div className="pointer-events-none absolute top-36 right-0 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
 
       <div className="relative space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
-          <Link to="/events" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white">
+          <Link to="/events" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900">
             <ArrowLeft size={14} /> Back to events
           </Link>
           <div className="flex items-center gap-2 flex-wrap">
-            <Link to={`/projects?event=${event._id}`} className="btn btn-secondary !text-xs !px-3 !py-2">
+            <Link to={`/projects?event=${event._id}`} className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-xs !px-3 !py-2">
               <Layers3 size={12} /> Project Tracks
             </Link>
             {event.allowApplications ? (
-              <Link to={`/apply?event=${event._id}`} className="btn btn-secondary !text-xs !px-3 !py-2">
+              <Link to={`/apply?event=${event._id}`} className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-xs !px-3 !py-2">
                 <Users size={12} /> Apply Link
               </Link>
             ) : null}
@@ -290,27 +290,27 @@ export default function EventDetails() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-[#070d14]/85 p-5 md:p-7"
+          className="relative overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-sm border border-slate-200 p-5 md:p-7"
         >
           <div className="pointer-events-none absolute -right-10 -top-14 h-52 w-52 rounded-full bg-cyan-400/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 left-24 h-52 w-52 rounded-full bg-blue-500/10 blur-3xl" />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_310px] gap-6">
             <div className="space-y-4">
-              <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-cyan-300 font-semibold">
+              <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-cyan-600 font-semibold">
                 <Sparkles size={12} /> Event Command View
               </p>
-              <h1 className="text-3xl md:text-4xl font-semibold text-white leading-tight tracking-tight">{event.title}</h1>
-              <p className="text-sm md:text-base text-slate-300 max-w-3xl leading-relaxed">
+              <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 leading-tight tracking-tight">{event.title}</h1>
+              <p className="text-sm md:text-base text-slate-700 max-w-3xl leading-relaxed">
                 {event.description || 'No event description available.'}
               </p>
 
               <div className="flex flex-wrap gap-2">
                 <span className={`text-xs px-3 py-1.5 rounded-full border ${statusTone(event.status)}`}>{event.status}</span>
-                <span className="text-xs px-3 py-1.5 rounded-full border border-blue-500/40 text-blue-100 bg-blue-500/10">
+                <span className="text-xs px-3 py-1.5 rounded-full border border-blue-300 text-blue-700 bg-blue-500/10">
                   {event.type || 'Internal'}
                 </span>
-                <span className="text-xs px-3 py-1.5 rounded-full border border-amber-500/35 text-amber-100 bg-amber-500/10">
+                <span className="text-xs px-3 py-1.5 rounded-full border border-amber-200 text-amber-800 bg-amber-500/10">
                   {eventDuration}
                 </span>
               </div>
@@ -328,13 +328,13 @@ export default function EventDetails() {
         <section className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-6">
           <aside className="rounded-3xl border border-slate-800/85 bg-slate-950/65 backdrop-blur-md overflow-hidden xl:sticky xl:top-24 h-fit">
             <section className="p-5 md:p-6 space-y-3">
-              <h2 className="text-sm font-semibold text-slate-200">Operational Context</h2>
-              <div className="space-y-2 text-sm text-slate-300">
-                <p className="inline-flex items-center gap-2"><MapPin size={14} className="text-emerald-300" /> {event.location}</p>
-                <p className="inline-flex items-center gap-2"><CalendarDays size={14} className="text-blue-300" /> {formatDateTime(event.startTime)}</p>
-                <p className="inline-flex items-center gap-2"><Clock3 size={14} className="text-amber-300" /> {formatDateTime(event.endTime)}</p>
+              <h2 className="text-sm font-semibold text-slate-700">Operational Context</h2>
+              <div className="space-y-2 text-sm text-slate-700">
+                <p className="inline-flex items-center gap-2"><MapPin size={14} className="text-emerald-600" /> {event.location}</p>
+                <p className="inline-flex items-center gap-2"><CalendarDays size={14} className="text-blue-600" /> {formatDateTime(event.startTime)}</p>
+                <p className="inline-flex items-center gap-2"><Clock3 size={14} className="text-amber-600" /> {formatDateTime(event.endTime)}</p>
                 {event.allowApplications ? (
-                  <p className="inline-flex items-center gap-2 text-cyan-200">
+                  <p className="inline-flex items-center gap-2 text-cyan-700">
                     <Users size={14} /> Applications open till {formatDate(event.applicationDeadline)}
                   </p>
                 ) : (
@@ -344,7 +344,7 @@ export default function EventDetails() {
             </section>
 
             <section className="border-t border-slate-800/80 p-5 md:p-6 space-y-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-slate-400 font-semibold">Participants</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-600 font-semibold">Participants</p>
               {participants.length === 0 ? (
                 <p className="text-sm text-slate-500">No participants added yet.</p>
               ) : (
@@ -354,10 +354,10 @@ export default function EventDetails() {
                       key={participant._id || participant.email || participant.collegeId}
                       className="inline-flex items-center gap-2 rounded-full border border-slate-700/90 bg-slate-900/80 px-2.5 py-1.5"
                     >
-                      <span className="w-6 h-6 rounded-full border border-cyan-500/35 bg-cyan-500/10 text-cyan-100 text-[10px] font-semibold inline-flex items-center justify-center">
+                      <span className="w-6 h-6 rounded-full border border-blue-200 bg-cyan-500/10 text-blue-700 text-[10px] font-semibold inline-flex items-center justify-center">
                         {initials(participant.name)}
                       </span>
-                      <span className="text-xs text-slate-200">{participant.name || 'Unnamed'}</span>
+                      <span className="text-xs text-slate-700">{participant.name || 'Unnamed'}</span>
                     </span>
                   ))}
                 </div>
@@ -366,17 +366,17 @@ export default function EventDetails() {
 
             {isAdmin ? (
               <section className="border-t border-slate-800/80 p-5 md:p-6 space-y-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-cyan-200 font-semibold">Admin Controls</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-cyan-700 font-semibold">Admin Controls</p>
                 <input
                   value={participantSearch}
                   onChange={(eventValue) => setParticipantSearch(eventValue.target.value)}
-                  className="ui-input py-2!"
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 py-2!"
                   placeholder="Search member by name, role, or college ID"
                 />
 
                 <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
                   {availableMembers.length === 0 ? (
-                    <p className="text-xs text-slate-400">No eligible members available to add.</p>
+                    <p className="text-xs text-slate-600">No eligible members available to add.</p>
                   ) : (
                     availableMembers.map((member) => {
                       const selected = selectedParticipantIds.includes(member._id);
@@ -387,12 +387,12 @@ export default function EventDetails() {
                           onClick={() => toggleParticipantPick(member._id)}
                           className={`w-full text-left text-xs rounded-lg border px-2.5 py-2 transition-colors ${
                             selected
-                              ? 'border-cyan-400/80 bg-cyan-500/15 text-cyan-100'
-                              : 'border-slate-700/90 text-slate-300 hover:border-slate-500'
+                              ? 'border-blue-200 bg-cyan-500/15 text-blue-700'
+                              : 'border-slate-700/90 text-slate-700 hover:border-slate-500'
                           }`}
                         >
                           <p className="font-medium">{member.name || 'Unnamed Member'}</p>
-                          <p className="text-[11px] text-slate-400">
+                          <p className="text-[11px] text-slate-600">
                             {member.role || 'Member'} {member.collegeId ? `• ${member.collegeId}` : ''}
                           </p>
                         </button>
@@ -405,20 +405,20 @@ export default function EventDetails() {
                   type="button"
                   disabled={addingParticipants || selectedParticipantIds.length === 0}
                   onClick={handleAddParticipants}
-                  className="btn btn-secondary !text-xs !px-3 !py-2 disabled:opacity-60"
+                  className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-xs !px-3 !py-2 disabled:opacity-60"
                 >
                   {addingParticipants ? <Loader2 size={12} className="animate-spin" /> : <UserPlus size={12} />}
                   Add {selectedParticipantIds.length > 0 ? `${selectedParticipantIds.length} ` : ''}Participant{selectedParticipantIds.length === 1 ? '' : 's'}
                 </button>
 
                 {selectedParticipantIds.length > 0 ? (
-                  <p className="text-[11px] text-cyan-200 inline-flex items-center gap-1.5">
+                  <p className="text-[11px] text-cyan-700 inline-flex items-center gap-1.5">
                     <Check size={11} /> {selectedParticipantIds.length} selected
                   </p>
                 ) : null}
 
                 {participantMessage ? (
-                  <p className={`text-xs ${participantMessage.type === 'error' ? 'text-rose-200' : 'text-emerald-200'}`}>
+                  <p className={`text-xs ${participantMessage.type === 'error' ? 'text-red-600' : 'text-emerald-700'}`}>
                     {participantMessage.text}
                   </p>
                 ) : null}
@@ -427,21 +427,21 @@ export default function EventDetails() {
 
             <section className="border-t border-slate-800/80 p-5 md:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-5">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400 font-semibold">Status Distribution</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-600 font-semibold">Status Distribution</p>
                 {statusEntries.length === 0 ? (
                   <p className="text-sm text-slate-500">No project statuses available yet.</p>
                 ) : (
                   statusEntries.map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between text-sm text-slate-300">
+                    <div key={status} className="flex items-center justify-between text-sm text-slate-700">
                       <span>{status}</span>
-                      <span className="text-cyan-200 font-semibold">{count}</span>
+                      <span className="text-cyan-700 font-semibold">{count}</span>
                     </div>
                   ))
                 )}
               </div>
 
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400 font-semibold">Stage Distribution</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-600 font-semibold">Stage Distribution</p>
                 {stageEntries.length === 0 ? (
                   <p className="text-sm text-slate-500">No stage data available yet.</p>
                 ) : (
@@ -449,9 +449,9 @@ export default function EventDetails() {
                     const width = projects.length ? Math.max(8, (count / projects.length) * 100) : 0;
                     return (
                       <div key={stage} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs text-slate-300">
+                        <div className="flex items-center justify-between text-xs text-slate-700">
                           <span>{stage}</span>
-                          <span className="text-cyan-200 font-semibold">{count}</span>
+                          <span className="text-cyan-700 font-semibold">{count}</span>
                         </div>
                         <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
                           <div className="h-full bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400" style={{ width: `${width}%` }} />
@@ -467,10 +467,10 @@ export default function EventDetails() {
           <section className="rounded-3xl border border-slate-800/85 bg-slate-950/65 backdrop-blur-md overflow-hidden">
             <div className="px-5 md:px-6 py-4 border-b border-slate-800/80 flex items-center justify-between gap-2">
               <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400 font-semibold">Project Tracks</p>
-                <h3 className="text-lg text-white font-semibold mt-1">Delivery Pipeline</h3>
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-600 font-semibold">Project Tracks</p>
+                <h3 className="text-lg text-slate-900 font-semibold mt-1">Delivery Pipeline</h3>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full border border-cyan-500/35 text-cyan-100 bg-cyan-500/10">
+              <span className="text-xs px-2.5 py-1 rounded-full border border-blue-200 text-blue-700 bg-cyan-500/10">
                 {projects.length} project{projects.length === 1 ? '' : 's'}
               </span>
             </div>
@@ -491,8 +491,8 @@ export default function EventDetails() {
                       <span className="rounded-full bg-gradient-to-b from-cyan-300 via-blue-400 to-indigo-500" />
                       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_130px_140px] gap-3 items-start">
                         <div>
-                          <p className="text-base text-white font-semibold">{project.title}</p>
-                          <p className="text-xs text-slate-400 mt-1">
+                          <p className="text-base text-slate-900 font-semibold">{project.title}</p>
+                          <p className="text-xs text-slate-600 mt-1">
                             {project.stage || 'Planning'} • {project.domain || 'Tech'}
                           </p>
                           <div className="mt-3 h-1.5 rounded-full bg-slate-800 overflow-hidden max-w-xl">
@@ -504,13 +504,13 @@ export default function EventDetails() {
                         </div>
                         <div>
                           <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Deadline</p>
-                          <p className="text-sm text-slate-200 mt-1">{formatDate(project.deadline)}</p>
+                          <p className="text-sm text-slate-700 mt-1">{formatDate(project.deadline)}</p>
                         </div>
                         <div className="flex lg:flex-col items-start lg:items-end justify-between gap-2">
                           <span className={`text-xs px-2 py-1 rounded-full border ${projectStatusTone(project.status)}`}>
                             {project.status || 'Planning'}
                           </span>
-                          <Link to={`/projects/${project._id}`} className="inline-flex items-center gap-1 text-xs text-cyan-200 hover:text-white">
+                          <Link to={`/projects/${project._id}`} className="inline-flex items-center gap-1 text-xs text-cyan-700 hover:text-slate-900">
                             Open <ArrowRight size={13} />
                           </Link>
                         </div>
@@ -530,18 +530,18 @@ export default function EventDetails() {
 function Metric({ label, value, tone = 'cyan' }) {
   const toneClass =
     tone === 'blue'
-      ? 'border-blue-500/45 text-blue-100 bg-blue-500/10'
+      ? 'border-blue-300 text-blue-700 bg-blue-500/10'
       : tone === 'emerald'
-      ? 'border-emerald-500/45 text-emerald-100 bg-emerald-500/10'
+      ? 'border-emerald-200 text-emerald-800 bg-emerald-500/10'
       : tone === 'violet'
       ? 'border-violet-500/45 text-violet-100 bg-violet-500/10'
       : tone === 'amber'
-      ? 'border-amber-500/45 text-amber-100 bg-amber-500/10'
-      : 'border-cyan-500/45 text-cyan-100 bg-cyan-500/10';
+      ? 'border-amber-200 text-amber-800 bg-amber-500/10'
+      : 'border-blue-200 text-blue-700 bg-cyan-500/10';
 
   return (
     <article className={`rounded-xl border px-3 py-2.5 ${toneClass}`}>
-      <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.14em] text-slate-600">{label}</p>
       <p className="text-base font-semibold mt-1">{value}</p>
     </article>
   );

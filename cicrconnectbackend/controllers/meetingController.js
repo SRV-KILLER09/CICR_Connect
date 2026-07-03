@@ -1,6 +1,6 @@
 const Meeting = require('../models/Meeting');
 const User = require('../models/User');
-const { isAdminOrHead, validateHierarchyTeam, parseYear } = require('../utils/hierarchy');
+const { authorizeAction } = require('../utils/policyEngine');
 const { createNotifications } = require('../utils/notificationService');
 const { logAudit } = require('../utils/auditLogger');
 
@@ -18,12 +18,9 @@ exports.scheduleMeeting = async (req, res) => {
             return res.status(400).json({ message: "Please provide all required fields." });
         }
 
-        // 2. Enforce hierarchy rules for non-admin roles
-        if (!isAdminOrHead(req.user)) {
-            const actorYear = parseYear(req.user.year);
-            if (!actorYear || actorYear < 2) {
-                return res.status(403).json({ message: 'Only seniors (2nd year and above) can schedule meetings.' });
-            }
+        const scheduleDecision = authorizeAction('SCHEDULE_MEETING', req.user);
+        if (!scheduleDecision.allowed) {
+            return res.status(403).json({ message: scheduleDecision.reason });
         }
 
         const participantIds = Array.isArray(participants) ? [...new Set(participants.filter(Boolean))] : [];
@@ -35,10 +32,10 @@ exports.scheduleMeeting = async (req, res) => {
             return res.status(400).json({ message: 'Some participants could not be found.' });
         }
 
-        if (!isAdminOrHead(req.user) && participantUsers.length) {
-            const validation = validateHierarchyTeam(req.user, participantUsers);
-            if (!validation.allowed) {
-                return res.status(403).json({ message: validation.reason });
+        if (participantUsers.length) {
+            const teamDecision = authorizeAction('MANAGE_TEAM', req.user, { members: participantUsers });
+            if (!teamDecision.allowed) {
+                return res.status(403).json({ message: teamDecision.reason });
             }
         }
 
@@ -99,6 +96,10 @@ exports.scheduleMeeting = async (req, res) => {
  */
 exports.getMeetings = async (req, res) => {
     try {
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 500);
+        const page = Math.max(parseInt(req.query.page) || 1, 1);
+        const skip = (page - 1) * limit;
+
         const meetings = await Meeting.find({
             $or: [
                 { organizedBy: req.user.id },
@@ -106,7 +107,9 @@ exports.getMeetings = async (req, res) => {
             ]
         })
         .populate('organizedBy', 'name')
-        .sort({ startTime: 1 });
+        .sort({ startTime: -1 })
+        .skip(skip)
+        .limit(limit);
 
         res.status(200).json(meetings);
     } catch (err) {

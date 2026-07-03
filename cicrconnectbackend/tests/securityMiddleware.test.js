@@ -18,6 +18,10 @@ const createMockRes = () => {
       this.body = payload;
       return this;
     },
+    send(payload) {
+      this.body = payload;
+      return this;
+    },
   };
 };
 

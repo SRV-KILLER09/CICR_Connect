@@ -53,12 +53,12 @@ export default function Members() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 section-motion section-motion-delay-1">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Community Directory</h2>
-          <p className="text-gray-400">Discover innovators across the CICR network</p>
+          <p className="text-slate-600">Discover innovators across the CICR network</p>
         </div>
         
         {/* Quick Stats Summary */}
         <div className="flex gap-4">
-            <div className="bg-blue-600/10 border border-blue-500/20 px-4 py-2 rounded-2xl">
+            <div className="bg-blue-600/10 border border-blue-300 px-4 py-2 rounded-2xl">
                 <p className="text-[10px] uppercase font-black text-blue-500 tracking-widest">Total</p>
                 <p className="text-xl font-bold">{filteredMembers.length}</p>
             </div>
@@ -70,19 +70,19 @@ export default function Members() {
       </header>
 
       {/* Advanced Filter Bar */}
-      <div className="border border-gray-800 p-5 rounded-3xl shadow-xl space-y-4 section-motion section-motion-delay-2">
-        <div className="flex items-center gap-2 text-gray-400 text-xs font-bold uppercase tracking-widest px-1">
+      <div className="border border-slate-200 p-5 rounded-3xl shadow-xl space-y-4 section-motion section-motion-delay-2">
+        <div className="flex items-center gap-2 text-slate-600 text-xs font-bold uppercase tracking-widest px-1">
             <Filter size={14} /> Advanced Filtering
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
           {/* Search Input */}
           <div className="lg:col-span-2 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input
               type="text"
               value={searchTerm}
               placeholder="Search by name or ID..."
-              className="w-full bg-[#0a0a0c] border border-gray-800 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-blue-500 transition-all text-sm"
+              className="w-full bg-[#0a0a0c] border border-slate-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-blue-500 transition-all text-sm"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
@@ -90,7 +90,7 @@ export default function Members() {
           <select 
             value={filterBranch}
             onChange={(e) => setFilterBranch(e.target.value)}
-            className="bg-[#0a0a0c] border border-gray-800 rounded-xl py-3 px-4 outline-none focus:border-blue-500 text-sm cursor-pointer appearance-none"
+            className="bg-[#0a0a0c] border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-blue-500 text-sm cursor-pointer appearance-none"
           >
             <option value="All">All Branches</option>
             {branches.filter(b => b !== 'All').map(b => <option key={b} value={b}>{b}</option>)}
@@ -99,7 +99,7 @@ export default function Members() {
           <select 
             value={filterYear}
             onChange={(e) => setFilterYear(e.target.value)}
-            className="bg-[#0a0a0c] border border-gray-800 rounded-xl py-3 px-4 outline-none focus:border-blue-500 text-sm cursor-pointer appearance-none"
+            className="bg-[#0a0a0c] border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-blue-500 text-sm cursor-pointer appearance-none"
           >
             <option value="All">All Years</option>
             {years.filter(y => y !== 'All').map(y => <option key={y} value={y}>{y} Year</option>)}
@@ -115,7 +115,7 @@ export default function Members() {
       </div>
 
       {/* Status Bar - Uses the 'Users' icon fixed above */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 px-2 section-motion section-motion-delay-2">
+      <div className="flex items-center gap-2 text-sm text-slate-500 px-2 section-motion section-motion-delay-2">
         <Users size={16} className="text-blue-500" />
         <span>Found {filteredMembers.length} members matching your criteria</span>
       </div>
@@ -129,7 +129,7 @@ export default function Members() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="border border-gray-800 rounded-3xl p-6 hover:border-blue-500/50 transition-all group relative overflow-hidden flex flex-col pro-hover-lift"
+              className="border border-slate-200 rounded-3xl p-6 hover:border-blue-300 transition-all group relative overflow-hidden flex flex-col pro-hover-lift"
             >
               <div className="flex items-start justify-between mb-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-xl font-bold uppercase shadow-lg">
@@ -137,7 +137,7 @@ export default function Members() {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                     <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                    member.role === 'Admin' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                    member.role === 'Admin' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-300'
                     }`}>
                     {member.role}
                     </span>
@@ -148,18 +148,18 @@ export default function Members() {
               <h3 className="text-xl font-bold group-hover:text-blue-400 transition-colors">
                 {member.name}
               </h3>
-              <p className="text-gray-500 text-xs font-mono mb-6 uppercase">{member.collegeId}</p>
+              <p className="text-slate-500 text-xs font-mono mb-6 uppercase">{member.collegeId}</p>
 
-              <div className="space-y-3 mt-auto pt-6 border-t border-gray-800/50">
-                <div className="flex items-center gap-3 text-gray-400 text-sm">
+              <div className="space-y-3 mt-auto pt-6 border-t border-slate-200 bg-white border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3 text-slate-600 text-sm">
                   <Mail size={16} className="text-blue-500" />
                   <span className="truncate">{member.email}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                <div className="flex items-center gap-3 text-slate-600 text-sm">
                   <Briefcase size={16} className="text-purple-500" />
                   <span>{member.branch || 'General'}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                <div className="flex items-center gap-3 text-slate-600 text-sm">
                   <GraduationCap size={16} className="text-amber-500" />
                   <span>{member.year ? `${member.year} Year` : 'Batch N/A'}</span>
                 </div>
@@ -171,10 +171,10 @@ export default function Members() {
 
       {/* Empty State */}
       {filteredMembers.length === 0 && !loading && (
-        <div className="text-center py-24 rounded-[40px] border border-dashed border-gray-800 section-motion section-motion-delay-3">
+        <div className="text-center py-24 rounded-[40px] border border-dashed border-slate-200 section-motion section-motion-delay-3">
           <Users className="mx-auto text-gray-700 mb-4" size={48} />
-          <h3 className="text-xl font-bold text-gray-300">No matches found</h3>
-          <p className="text-gray-500 mt-2">Try changing your filters or search keywords.</p>
+          <h3 className="text-xl font-bold text-slate-700">No matches found</h3>
+          <p className="text-slate-500 mt-2">Try changing your filters or search keywords.</p>
           <button onClick={resetFilters} className="mt-6 text-blue-500 font-bold hover:underline">Clear all filters</button>
         </div>
       )}

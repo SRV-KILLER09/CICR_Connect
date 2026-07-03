@@ -45,31 +45,31 @@ const TABS = [
 ];
 
 const QUEST_STATUS_CLASS = {
-  NotSubmitted: 'text-gray-300 border-gray-700 bg-gray-800/30',
-  Submitted: 'text-blue-300 border-blue-500/40 bg-blue-500/10',
-  Approved: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-  Rejected: 'text-rose-300 border-rose-500/40 bg-rose-500/10',
-  NeedsRevision: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
+  NotSubmitted: 'text-slate-700 border-slate-300 bg-slate-50 border-slate-200 text-slate-600',
+  Submitted: 'text-blue-600 border-blue-300 bg-blue-500/10',
+  Approved: 'text-emerald-600 border-emerald-200 bg-emerald-500/10',
+  Rejected: 'text-red-600 border-red-200 bg-rose-500/10',
+  NeedsRevision: 'text-amber-600 border-amber-200 bg-amber-500/10',
 };
 
 const MENTOR_STATUS_CLASS = {
-  Open: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
-  Accepted: 'text-blue-300 border-blue-500/40 bg-blue-500/10',
-  Resolved: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-  Closed: 'text-gray-300 border-gray-700 bg-gray-800/30',
+  Open: 'text-cyan-600 border-blue-200 bg-cyan-500/10',
+  Accepted: 'text-blue-600 border-blue-300 bg-blue-500/10',
+  Resolved: 'text-emerald-600 border-emerald-200 bg-emerald-500/10',
+  Closed: 'text-slate-700 border-slate-300 bg-slate-50 border-slate-200 text-slate-600',
 };
 
 const IDEA_STATUS_CLASS = {
-  UnderReview: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
-  Approved: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-  Rejected: 'text-rose-300 border-rose-500/40 bg-rose-500/10',
+  UnderReview: 'text-cyan-600 border-blue-200 bg-cyan-500/10',
+  Approved: 'text-emerald-600 border-emerald-200 bg-emerald-500/10',
+  Rejected: 'text-red-600 border-red-200 bg-rose-500/10',
   Converted: 'text-indigo-300 border-indigo-500/40 bg-indigo-500/10',
 };
 
 const SLOT_STATUS_CLASS = {
-  Open: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
-  Closed: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
-  Cancelled: 'text-rose-300 border-rose-500/40 bg-rose-500/10',
+  Open: 'text-emerald-600 border-emerald-200 bg-emerald-500/10',
+  Closed: 'text-amber-600 border-amber-200 bg-amber-500/10',
+  Cancelled: 'text-red-600 border-red-200 bg-rose-500/10',
 };
 
 const BADGE_ICONS = {
@@ -812,7 +812,7 @@ export default function ProgramsHub() {
 
   if (loading) {
     return (
-      <div className="ui-page pb-16 page-motion-a">
+      <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 page-motion-a">
         <DataLoading label="Loading Programs Hub..." />
       </div>
     );
@@ -820,14 +820,14 @@ export default function ProgramsHub() {
 
   if (error) {
     return (
-      <div className="ui-page pb-16 page-motion-a">
+      <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 page-motion-a">
         <DataError label={error} onRetry={loadPrograms} />
       </div>
     );
   }
 
   return (
-    <div className="ui-page pb-16 space-y-8 page-motion-a">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 space-y-8 page-motion-a">
       <section className="section-motion section-motion-delay-1">
         <PageHeader
           eyebrow="Member Experience"
@@ -844,7 +844,7 @@ export default function ProgramsHub() {
         />
       </section>
 
-      <section className="ui-toolbar-sticky section-motion section-motion-delay-1">
+      <section className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-slate-200 py-2 section-motion section-motion-delay-1">
         <div className="flex flex-wrap gap-2">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -857,8 +857,8 @@ export default function ProgramsHub() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3.5 py-2 rounded-xl border text-xs uppercase tracking-[0.14em] font-black transition-colors inline-flex items-center gap-1.5 ${
                   isActive
-                    ? 'border-blue-500/55 bg-blue-500/15 text-blue-100'
-                    : 'border-gray-800 text-gray-400 hover:text-white hover:border-gray-700'
+                    ? 'border-blue-300 bg-blue-500/15 text-blue-700'
+                    : 'border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300'
                 }`}
               >
                 <tab.icon size={13} /> {tab.label}
@@ -888,17 +888,17 @@ export default function ProgramsHub() {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                    <Target size={14} className="text-cyan-300" /> Next Quests
+                <div className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                    <Target size={14} className="text-cyan-600" /> Next Quests
                   </h3>
                   <div className="mt-4 space-y-3">
                     {Array.isArray(overview?.upcomingQuests) && overview.upcomingQuests.length > 0 ? (
                       overview.upcomingQuests.map((quest) => (
-                        <article key={quest._id} className="rounded-xl border border-gray-800 px-4 py-3">
-                          <p className="text-sm font-bold text-white">{quest.title}</p>
-                          <p className="text-xs text-gray-400 mt-1">{quest.category} • {quest.points} points</p>
-                          <p className="text-xs text-cyan-200 mt-1">Ends {formatDateTime(quest.endsAt)}</p>
+                        <article key={quest._id} className="rounded-xl border border-slate-200 px-4 py-3">
+                          <p className="text-sm font-bold text-slate-900">{quest.title}</p>
+                          <p className="text-xs text-slate-600 mt-1">{quest.category} • {quest.points} points</p>
+                          <p className="text-xs text-cyan-700 mt-1">Ends {formatDateTime(quest.endsAt)}</p>
                         </article>
                       ))
                     ) : (
@@ -907,19 +907,19 @@ export default function ProgramsHub() {
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                    <Trophy size={14} className="text-amber-300" /> Leaderboard Snapshot
+                <div className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                    <Trophy size={14} className="text-amber-600" /> Leaderboard Snapshot
                   </h3>
                   <div className="mt-4 space-y-3 max-h-[18rem] overflow-y-auto pr-1">
                     {leaderboardRows.length > 0 ? (
                       leaderboardRows.slice(0, 8).map((row) => (
-                        <article key={`${row.member?._id}-${row.rank}`} className="rounded-xl border border-gray-800 px-4 py-3 flex items-center justify-between gap-3">
+                        <article key={`${row.member?._id}-${row.rank}`} className="rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
                           <div>
-                            <p className="text-sm font-bold text-white">#{row.rank} {row.member?.name || 'Member'}</p>
-                            <p className="text-xs text-gray-400 mt-1">{row.member?.collegeId} • Year {row.member?.year || 'N/A'}</p>
+                            <p className="text-sm font-bold text-slate-900">#{row.rank} {row.member?.name || 'Member'}</p>
+                            <p className="text-xs text-slate-600 mt-1">{row.member?.collegeId} • Year {row.member?.year || 'N/A'}</p>
                           </div>
-                          <p className="text-sm font-black text-cyan-200">{row.points} pts</p>
+                          <p className="text-sm font-black text-cyan-700">{row.points} pts</p>
                         </article>
                       ))
                     ) : (
@@ -930,12 +930,12 @@ export default function ProgramsHub() {
               </div>
 
               {isAdminOrHead && configDraft && (
-                <div className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6 space-y-4">
+                <div className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
                       <Settings2 size={14} className="text-indigo-300" /> Admin Visibility Controls
                     </h3>
-                    <button type="button" onClick={saveConfig} className="btn btn-primary" disabled={configBusy}>
+                    <button type="button" onClick={saveConfig} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" disabled={configBusy}>
                       {configBusy ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save
                     </button>
                   </div>
@@ -986,31 +986,31 @@ export default function ProgramsHub() {
           {activeTab === 'quests' && (
             <div className="space-y-6">
               {isAdminOrHead && (
-                <form onSubmit={createQuest} className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6 space-y-3">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                    <Plus size={14} className="text-cyan-300" /> Create Weekly Quest
+                <form onSubmit={createQuest} className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6 space-y-3">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                    <Plus size={14} className="text-cyan-600" /> Create Weekly Quest
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input className="ui-input" value={questForm.title} onChange={(e) => setQuestForm((p) => ({ ...p, title: e.target.value }))} placeholder="Quest title" required />
-                    <input className="ui-input" type="number" min={1} max={500} value={questForm.points} onChange={(e) => setQuestForm((p) => ({ ...p, points: Number(e.target.value || 1) }))} placeholder="Points" required />
-                    <select className="ui-input" value={questForm.category} onChange={(e) => setQuestForm((p) => ({ ...p, category: e.target.value }))}>
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={questForm.title} onChange={(e) => setQuestForm((p) => ({ ...p, title: e.target.value }))} placeholder="Quest title" required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="number" min={1} max={500} value={questForm.points} onChange={(e) => setQuestForm((p) => ({ ...p, points: Number(e.target.value || 1) }))} placeholder="Points" required />
+                    <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={questForm.category} onChange={(e) => setQuestForm((p) => ({ ...p, category: e.target.value }))}>
                       <option>Technical</option>
                       <option>Design</option>
                       <option>Communication</option>
                       <option>Operations</option>
                       <option>Community</option>
                     </select>
-                    <select className="ui-input" value={questForm.audience} onChange={(e) => setQuestForm((p) => ({ ...p, audience: e.target.value }))}>
+                    <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={questForm.audience} onChange={(e) => setQuestForm((p) => ({ ...p, audience: e.target.value }))}>
                       <option value="AllMembers">All Members</option>
                       <option value="FirstYear">First Year</option>
                       <option value="SecondYear">Second Year</option>
                       <option value="FirstAndSecond">1st + 2nd Year</option>
                     </select>
-                    <input className="ui-input" type="datetime-local" value={questForm.startsAt} onChange={(e) => setQuestForm((p) => ({ ...p, startsAt: e.target.value }))} required />
-                    <input className="ui-input" type="datetime-local" value={questForm.endsAt} onChange={(e) => setQuestForm((p) => ({ ...p, endsAt: e.target.value }))} required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="datetime-local" value={questForm.startsAt} onChange={(e) => setQuestForm((p) => ({ ...p, startsAt: e.target.value }))} required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="datetime-local" value={questForm.endsAt} onChange={(e) => setQuestForm((p) => ({ ...p, endsAt: e.target.value }))} required />
                   </div>
-                  <textarea className="ui-input resize-none" rows={3} value={questForm.summary} onChange={(e) => setQuestForm((p) => ({ ...p, summary: e.target.value }))} placeholder="Quest description and acceptance expectations" />
-                  <button className="btn btn-primary" type="submit" disabled={questCreateBusy}>
+                  <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none" rows={3} value={questForm.summary} onChange={(e) => setQuestForm((p) => ({ ...p, summary: e.target.value }))} placeholder="Quest description and acceptance expectations" />
+                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="submit" disabled={questCreateBusy}>
                     {questCreateBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Create Quest
                   </button>
                 </form>
@@ -1023,36 +1023,36 @@ export default function ProgramsHub() {
                   const canSubmit = quest.status === 'Active' && !isAdminOrHead;
                   const draft = questSubmissionDrafts[quest._id] || { evidenceText: '', evidenceLink: '' };
                   return (
-                    <motion.article key={quest._id} whileHover={{ y: -2 }} className="rounded-[1.2rem] border border-gray-800 p-4 space-y-3">
+                    <motion.article key={quest._id} whileHover={{ y: -2 }} className="rounded-[1.2rem] border border-slate-200 p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-bold text-white">{quest.title}</p>
-                          <p className="text-xs text-gray-400 mt-1">{quest.category} • {quest.points} points • {quest.audience}</p>
+                          <p className="text-sm font-bold text-slate-900">{quest.title}</p>
+                          <p className="text-xs text-slate-600 mt-1">{quest.category} • {quest.points} points • {quest.audience}</p>
                         </div>
                         <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${QUEST_STATUS_CLASS[status] || QUEST_STATUS_CLASS.NotSubmitted}`}>
                           {status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-300">{quest.summary || 'No summary available.'}</p>
-                      <p className="text-xs text-gray-400">Window: {formatDateTime(quest.startsAt)} - {formatDateTime(quest.endsAt)}</p>
+                      <p className="text-sm text-slate-700">{quest.summary || 'No summary available.'}</p>
+                      <p className="text-xs text-slate-600">Window: {formatDateTime(quest.startsAt)} - {formatDateTime(quest.endsAt)}</p>
 
                       {!isAdminOrHead && (
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                           <input
-                            className="ui-input md:col-span-5"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                             value={draft.evidenceText}
                             onChange={(e) => setQuestSubmissionDrafts((prev) => ({ ...prev, [quest._id]: { ...(prev[quest._id] || {}), evidenceText: e.target.value } }))}
                             placeholder="What did you complete?"
                           />
                           <input
-                            className="ui-input md:col-span-5"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5"
                             value={draft.evidenceLink}
                             onChange={(e) => setQuestSubmissionDrafts((prev) => ({ ...prev, [quest._id]: { ...(prev[quest._id] || {}), evidenceLink: e.target.value } }))}
                             placeholder="Evidence URL"
                           />
                           <button
                             type="button"
-                            className="btn btn-primary md:col-span-2"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-2"
                             onClick={() => submitQuestEvidence(quest._id)}
                             disabled={!canSubmit || questSubmitBusy === quest._id}
                           >
@@ -1063,13 +1063,13 @@ export default function ProgramsHub() {
 
                       {isAdminOrHead && (
                         <div className="flex flex-wrap gap-2">
-                          <button className="btn btn-secondary" type="button" onClick={() => updateQuestState(quest._id, 'Active')} disabled={questStatusBusy === `${quest._id}:Active`}>
+                          <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => updateQuestState(quest._id, 'Active')} disabled={questStatusBusy === `${quest._id}:Active`}>
                             Activate
                           </button>
-                          <button className="btn btn-secondary" type="button" onClick={() => updateQuestState(quest._id, 'Closed')} disabled={questStatusBusy === `${quest._id}:Closed`}>
+                          <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => updateQuestState(quest._id, 'Closed')} disabled={questStatusBusy === `${quest._id}:Closed`}>
                             Close
                           </button>
-                          <button className="btn btn-danger" type="button" onClick={() => updateQuestState(quest._id, 'Archived')} disabled={questStatusBusy === `${quest._id}:Archived`}>
+                          <button className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => updateQuestState(quest._id, 'Archived')} disabled={questStatusBusy === `${quest._id}:Archived`}>
                             Archive
                           </button>
                         </div>
@@ -1081,33 +1081,33 @@ export default function ProgramsHub() {
               </div>
 
               {isAdminOrHead && (
-                <div className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-emerald-300" /> Quest Review Queue
+                <div className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                    <CheckCircle2 size={14} className="text-emerald-600" /> Quest Review Queue
                   </h3>
                   <div className="mt-4 space-y-3 max-h-[28rem] overflow-y-auto pr-1">
                     {questReviewRows.length > 0 ? (
                       questReviewRows.map((row) => {
                         const draft = questReviewDrafts[row._id] || { status: 'Approved', pointsAwarded: row.quest?.points || 0, reviewNote: '' };
                         return (
-                          <article key={row._id} className="rounded-xl border border-gray-800 p-4 space-y-3">
+                          <article key={row._id} className="rounded-xl border border-slate-200 p-4 space-y-3">
                             <div className="flex items-center justify-between gap-3">
                               <div>
-                                <p className="text-sm font-bold text-white">{row.member?.name} • {row.quest?.title}</p>
-                                <p className="text-xs text-gray-400 mt-1">Submitted {formatDateTime(row.submittedAt)}</p>
+                                <p className="text-sm font-bold text-slate-900">{row.member?.name} • {row.quest?.title}</p>
+                                <p className="text-xs text-slate-600 mt-1">Submitted {formatDateTime(row.submittedAt)}</p>
                               </div>
                               <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${QUEST_STATUS_CLASS[row.status] || QUEST_STATUS_CLASS.Submitted}`}>{row.status}</span>
                             </div>
-                            <p className="text-sm text-gray-300">{row.evidenceText || row.evidenceLink || 'No evidence text.'}</p>
+                            <p className="text-sm text-slate-700">{row.evidenceText || row.evidenceLink || 'No evidence text.'}</p>
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-                              <select className="ui-input md:col-span-3" value={draft.status} onChange={(e) => setQuestReviewDrafts((prev) => ({ ...prev, [row._id]: { ...draft, status: e.target.value } }))}>
+                              <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-3" value={draft.status} onChange={(e) => setQuestReviewDrafts((prev) => ({ ...prev, [row._id]: { ...draft, status: e.target.value } }))}>
                                 <option>Approved</option>
                                 <option>NeedsRevision</option>
                                 <option>Rejected</option>
                               </select>
-                              <input className="ui-input md:col-span-2" type="number" min={0} max={500} value={draft.pointsAwarded} onChange={(e) => setQuestReviewDrafts((prev) => ({ ...prev, [row._id]: { ...draft, pointsAwarded: Number(e.target.value || 0) } }))} />
-                              <input className="ui-input md:col-span-5" value={draft.reviewNote} onChange={(e) => setQuestReviewDrafts((prev) => ({ ...prev, [row._id]: { ...draft, reviewNote: e.target.value } }))} placeholder="Review note" />
-                              <button className="btn btn-primary md:col-span-2" type="button" onClick={() => applyQuestReview(row._id)} disabled={questReviewBusy === row._id}>
+                              <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-2" type="number" min={0} max={500} value={draft.pointsAwarded} onChange={(e) => setQuestReviewDrafts((prev) => ({ ...prev, [row._id]: { ...draft, pointsAwarded: Number(e.target.value || 0) } }))} />
+                              <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5" value={draft.reviewNote} onChange={(e) => setQuestReviewDrafts((prev) => ({ ...prev, [row._id]: { ...draft, reviewNote: e.target.value } }))} placeholder="Review note" />
+                              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-2" type="button" onClick={() => applyQuestReview(row._id)} disabled={questReviewBusy === row._id}>
                                 {questReviewBusy === row._id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Apply
                               </button>
                             </div>
@@ -1130,13 +1130,13 @@ export default function ProgramsHub() {
               {myContestAttempts.length > 0 && contestView === 'list' && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="ct-score-banner">
                   <div className="flex items-center gap-3">
-                    <div className="ct-score-orb"><Trophy size={22} className="text-amber-300" /></div>
+                    <div className="ct-score-orb"><Trophy size={22} className="text-amber-600" /></div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-widest font-black">Your Total Score</p>
-                      <p className="text-3xl font-black text-white mt-0.5">{totalContestScore.score}<span className="text-lg text-gray-500 font-bold">/{totalContestScore.total}</span></p>
+                      <p className="text-xs text-slate-600 uppercase tracking-widest font-black">Your Total Score</p>
+                      <p className="text-3xl font-black text-slate-900 mt-0.5">{totalContestScore.score}<span className="text-lg text-slate-500 font-bold">/{totalContestScore.total}</span></p>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500">{myContestAttempts.filter((a) => a.status === 'Submitted').length} contest{myContestAttempts.filter((a) => a.status === 'Submitted').length !== 1 ? 's' : ''} completed</p>
+                  <p className="text-xs text-slate-500">{myContestAttempts.filter((a) => a.status === 'Submitted').length} contest{myContestAttempts.filter((a) => a.status === 'Submitted').length !== 1 ? 's' : ''} completed</p>
                 </motion.div>
               )}
 
@@ -1146,11 +1146,11 @@ export default function ProgramsHub() {
                   <div className="ct-generating-glow" />
                   <div className="relative z-10 flex flex-col items-center gap-5 py-10">
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} className="ct-ai-spinner">
-                      <Wand2 size={28} className="text-cyan-300" />
+                      <Wand2 size={28} className="text-cyan-600" />
                     </motion.div>
                     <div className="text-center">
-                      <h3 className="text-xl font-black text-white">Preparing Your Contest</h3>
-                      <p className="text-sm text-gray-400 mt-2">AI is crafting {aiQuestionCount} questions…</p>
+                      <h3 className="text-xl font-black text-slate-900">Preparing Your Contest</h3>
+                      <p className="text-sm text-slate-600 mt-2">AI is crafting {aiQuestionCount} questions…</p>
                     </div>
                     <div className="w-64 h-2 rounded-full bg-white/6 overflow-hidden">
                       <motion.div
@@ -1160,7 +1160,7 @@ export default function ProgramsHub() {
                         transition={{ duration: 0.3 }}
                       />
                     </div>
-                    <p className="text-xs text-gray-500 font-mono">{Math.round(aiProgress)}%</p>
+                    <p className="text-xs text-slate-500 font-mono">{Math.round(aiProgress)}%</p>
                   </div>
                 </motion.div>
               )}
@@ -1171,28 +1171,28 @@ export default function ProgramsHub() {
                   <div className="ct-result-confetti" />
                   <div className="relative z-10 text-center py-8">
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}>
-                      <Trophy size={52} className="text-amber-300 mx-auto" />
+                      <Trophy size={52} className="text-amber-600 mx-auto" />
                     </motion.div>
-                    <h2 className="text-2xl md:text-3xl font-black text-white mt-5">
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-5">
                       {contestResult.score >= contestResult.totalPoints * 0.8 ? 'Excellent!' : contestResult.score >= contestResult.totalPoints * 0.5 ? 'Good Job!' : 'Keep Practicing!'}
                     </h2>
                     <div className="mt-6 flex items-center justify-center gap-8">
                       <div>
-                        <p className="text-4xl font-black text-cyan-300">{contestResult.score}</p>
-                        <p className="text-xs text-gray-400 mt-1">Your Score</p>
+                        <p className="text-4xl font-black text-cyan-600">{contestResult.score}</p>
+                        <p className="text-xs text-slate-600 mt-1">Your Score</p>
                       </div>
                       <div className="h-12 w-px bg-gray-700" />
                       <div>
-                        <p className="text-4xl font-black text-gray-400">{contestResult.totalPoints}</p>
-                        <p className="text-xs text-gray-400 mt-1">Total Points</p>
+                        <p className="text-4xl font-black text-slate-600">{contestResult.totalPoints}</p>
+                        <p className="text-xs text-slate-600 mt-1">Total Points</p>
                       </div>
                       <div className="h-12 w-px bg-gray-700" />
                       <div>
-                        <p className="text-4xl font-black text-emerald-300">{Math.round((contestResult.score / Math.max(1, contestResult.totalPoints)) * 100)}%</p>
-                        <p className="text-xs text-gray-400 mt-1">Accuracy</p>
+                        <p className="text-4xl font-black text-emerald-600">{Math.round((contestResult.score / Math.max(1, contestResult.totalPoints)) * 100)}%</p>
+                        <p className="text-xs text-slate-600 mt-1">Accuracy</p>
                       </div>
                     </div>
-                    <button type="button" onClick={resetContestState} className="ct-btn-primary mt-8">
+                    <button type="button" onClick={resetContestState} className="ct-px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 mt-8">
                       <ChevronRight size={14} /> Back to Contests
                     </button>
                   </div>
@@ -1204,14 +1204,14 @@ export default function ProgramsHub() {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="ct-attempt-card">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-sm font-black uppercase tracking-widest text-cyan-300">Question {currentQIdx + 1} of {contestQuestions.length}</h3>
+                      <h3 className="text-sm font-black uppercase tracking-widest text-cyan-600">Question {currentQIdx + 1} of {contestQuestions.length}</h3>
                       <div className="flex gap-1.5 mt-2">{contestQuestions.map((_, i) => (
                         <button key={i} type="button" onClick={() => setCurrentQIdx(i)} className={`ct-dot ${i === currentQIdx ? 'ct-dot-active' : contestAnswers[contestQuestions[i]?._id] ? 'ct-dot-answered' : ''}`} />
                       ))}</div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-400">Points</p>
-                      <p className="text-lg font-black text-white">{contestQuestions[currentQIdx]?.points || 10}</p>
+                      <p className="text-xs text-slate-600">Points</p>
+                      <p className="text-lg font-black text-slate-900">{contestQuestions[currentQIdx]?.points || 10}</p>
                     </div>
                   </div>
 
@@ -1222,7 +1222,7 @@ export default function ProgramsHub() {
                         if (!q) return null;
                         return (
                           <div className="space-y-5">
-                            <p className="text-lg md:text-xl font-bold text-white leading-relaxed">{q.questionText}</p>
+                            <p className="text-lg md:text-xl font-bold text-slate-900 leading-relaxed">{q.questionText}</p>
 
                             {q.questionType === 'MCQ' && Array.isArray(q.options) ? (
                               <div className="grid gap-3">
@@ -1238,13 +1238,13 @@ export default function ProgramsHub() {
                                     >
                                       <span className="ct-option-letter">{String.fromCharCode(65 + oIdx)}</span>
                                       <span className="flex-1 text-left">{opt.replace(/^[A-D]\.\s*/, '')}</span>
-                                      {selected && <Check size={16} className="text-cyan-300 shrink-0" />}
+                                      {selected && <Check size={16} className="text-cyan-600 shrink-0" />}
                                     </motion.button>
                                   );
                                 })}
                               </div>
                             ) : (
-                              <input className="ui-input text-base py-3" value={contestAnswers[q._id] || ''} onChange={(e) => setContestAnswers((prev) => ({ ...prev, [q._id]: e.target.value }))} placeholder="Type your answer..." />
+                              <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 text-base py-3" value={contestAnswers[q._id] || ''} onChange={(e) => setContestAnswers((prev) => ({ ...prev, [q._id]: e.target.value }))} placeholder="Type your answer..." />
                             )}
                           </div>
                         );
@@ -1253,17 +1253,17 @@ export default function ProgramsHub() {
                   </AnimatePresence>
 
                   <div className="flex items-center justify-between mt-8 gap-3">
-                    <button type="button" onClick={() => setCurrentQIdx(Math.max(0, currentQIdx - 1))} disabled={currentQIdx === 0} className="ct-btn-ghost">Previous</button>
+                    <button type="button" onClick={() => setCurrentQIdx(Math.max(0, currentQIdx - 1))} disabled={currentQIdx === 0} className="ct-px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">Previous</button>
                     <div className="flex gap-3">
                       {currentQIdx < contestQuestions.length - 1 ? (
-                        <button type="button" onClick={() => setCurrentQIdx(currentQIdx + 1)} className="ct-btn-primary"><ChevronRight size={14} /> Next</button>
+                        <button type="button" onClick={() => setCurrentQIdx(currentQIdx + 1)} className="ct-px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"><ChevronRight size={14} /> Next</button>
                       ) : (
                         <button type="button" onClick={handleSubmitContest} disabled={contestBusy === `submit:${activeContest}`} className="ct-btn-submit">
                           {contestBusy === `submit:${activeContest}` ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Submit
                         </button>
                       )}
                     </div>
-                    <button type="button" onClick={resetContestState} className="ct-btn-ghost text-rose-400">Exit</button>
+                    <button type="button" onClick={resetContestState} className="ct-px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-rose-400">Exit</button>
                   </div>
                 </motion.div>
               )}
@@ -1271,23 +1271,23 @@ export default function ProgramsHub() {
               {/* ── Admin: AI Create ── */}
               {contestView === 'create' && isAdminOrHead && (
                 <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="ct-create-card">
-                  <button type="button" onClick={() => setContestView('list')} className="ct-btn-ghost text-sm mb-4">← Back to list</button>
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <button type="button" onClick={() => setContestView('list')} className="ct-px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-sm mb-4">← Back to list</button>
+                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
                     <Wand2 size={18} className="text-cyan-400" /> Create Contest with AI
                   </h3>
-                  <p className="text-sm text-gray-400 mt-1">Describe what the contest should be about and AI will generate questions, options, and answers.</p>
+                  <p className="text-sm text-slate-600 mt-1">Describe what the contest should be about and AI will generate questions, options, and answers.</p>
 
                   <div className="mt-5 space-y-4">
-                    <textarea className="ui-input ct-ai-textarea" rows={3} value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="e.g. Create a JavaScript quiz focusing on closures, promises, and event loop..." />
+                    <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 ct-ai-textarea" rows={3} value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="e.g. Create a JavaScript quiz focusing on closures, promises, and event loop..." />
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Questions</label>
-                        <input className="ui-input mt-1" type="number" min={3} max={30} value={aiQuestionCount} onChange={(e) => setAiQuestionCount(Number(e.target.value || 10))} />
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Questions</label>
+                        <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 mt-1" type="number" min={3} max={30} value={aiQuestionCount} onChange={(e) => setAiQuestionCount(Number(e.target.value || 10))} />
                       </div>
                       <div>
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Difficulty</label>
-                        <select className="ui-input mt-1" value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)}>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Difficulty</label>
+                        <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 mt-1" value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)}>
                           <option value="easy">Easy</option>
                           <option value="medium">Medium</option>
                           <option value="hard">Hard</option>
@@ -1295,8 +1295,8 @@ export default function ProgramsHub() {
                         </select>
                       </div>
                       <div>
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Audience</label>
-                        <select className="ui-input mt-1" value={contestForm.audience} onChange={(e) => setContestForm((p) => ({ ...p, audience: e.target.value }))}>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Audience</label>
+                        <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 mt-1" value={contestForm.audience} onChange={(e) => setContestForm((p) => ({ ...p, audience: e.target.value }))}>
                           <option value="AllMembers">All Members</option>
                           <option value="FirstYear">First Year</option>
                           <option value="SecondYear">Second Year</option>
@@ -1305,7 +1305,7 @@ export default function ProgramsHub() {
                       </div>
                     </div>
 
-                    <button type="button" onClick={handleGenerateContest} disabled={aiGenerating || !aiPrompt.trim()} className="ct-btn-primary w-full text-base py-3">
+                    <button type="button" onClick={handleGenerateContest} disabled={aiGenerating || !aiPrompt.trim()} className="ct-px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 w-full text-base py-3">
                       <Sparkles size={16} /> Generate Contest with AI
                     </button>
                   </div>
@@ -1316,51 +1316,51 @@ export default function ProgramsHub() {
               {contestView === 'preview' && isAdminOrHead && (
                 <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="ct-preview-card">
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-lg font-black text-white flex items-center gap-2">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
                       <CheckCircle2 size={18} className="text-emerald-400" /> Preview Generated Contest
                     </h3>
-                    <button type="button" onClick={() => setContestView('create')} className="ct-btn-ghost text-sm">← Edit Prompt</button>
+                    <button type="button" onClick={() => setContestView('create')} className="ct-px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-sm">← Edit Prompt</button>
                   </div>
 
                   <form onSubmit={handleCreateContest} className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <input className="ui-input" value={contestForm.title} onChange={(e) => setContestForm((p) => ({ ...p, title: e.target.value }))} placeholder="Contest title" required />
-                      <select className="ui-input" value={contestForm.audience} onChange={(e) => setContestForm((p) => ({ ...p, audience: e.target.value }))}>
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={contestForm.title} onChange={(e) => setContestForm((p) => ({ ...p, title: e.target.value }))} placeholder="Contest title" required />
+                      <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={contestForm.audience} onChange={(e) => setContestForm((p) => ({ ...p, audience: e.target.value }))}>
                         <option value="AllMembers">All Members</option>
                         <option value="FirstYear">First Year</option>
                         <option value="SecondYear">Second Year</option>
                         <option value="FirstAndSecond">First & Second</option>
                       </select>
-                      <input className="ui-input" type="number" min={1} max={300} value={contestForm.duration} onChange={(e) => setContestForm((p) => ({ ...p, duration: Number(e.target.value || 30) }))} placeholder="Duration (min)" />
-                      <select className="ui-input" value={contestForm.status} onChange={(e) => setContestForm((p) => ({ ...p, status: e.target.value }))}>
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="number" min={1} max={300} value={contestForm.duration} onChange={(e) => setContestForm((p) => ({ ...p, duration: Number(e.target.value || 30) }))} placeholder="Duration (min)" />
+                      <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={contestForm.status} onChange={(e) => setContestForm((p) => ({ ...p, status: e.target.value }))}>
                         <option value="Draft">Draft</option>
                         <option value="Active">Active</option>
                       </select>
-                      <input className="ui-input" type="datetime-local" value={contestForm.startsAt} onChange={(e) => setContestForm((p) => ({ ...p, startsAt: e.target.value }))} required />
-                      <input className="ui-input" type="datetime-local" value={contestForm.endsAt} onChange={(e) => setContestForm((p) => ({ ...p, endsAt: e.target.value }))} required />
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="datetime-local" value={contestForm.startsAt} onChange={(e) => setContestForm((p) => ({ ...p, startsAt: e.target.value }))} required />
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="datetime-local" value={contestForm.endsAt} onChange={(e) => setContestForm((p) => ({ ...p, endsAt: e.target.value }))} required />
                     </div>
-                    <textarea className="ui-input" rows={2} value={contestForm.description} onChange={(e) => setContestForm((p) => ({ ...p, description: e.target.value }))} placeholder="Description" />
+                    <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" rows={2} value={contestForm.description} onChange={(e) => setContestForm((p) => ({ ...p, description: e.target.value }))} placeholder="Description" />
 
-                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 pt-2">{contestForm.questions.length} Questions</h4>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-600 pt-2">{contestForm.questions.length} Questions</h4>
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                       {contestForm.questions.map((q, qIdx) => (
                         <motion.div key={qIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: qIdx * 0.03 }} className="ct-preview-question">
                           <div className="flex items-start gap-2 mb-2">
                             <span className="ct-q-badge">Q{qIdx + 1}</span>
-                            <input className="ui-input flex-1 text-sm font-bold" value={q.questionText} onChange={(e) => updateContestQuestion(qIdx, 'questionText', e.target.value)} />
-                            <input className="ui-input w-16 text-center" type="number" min={1} max={100} value={q.points} onChange={(e) => updateContestQuestion(qIdx, 'points', Number(e.target.value || 10))} title="Points" />
+                            <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 flex-1 text-sm font-bold" value={q.questionText} onChange={(e) => updateContestQuestion(qIdx, 'questionText', e.target.value)} />
+                            <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 w-16 text-center" type="number" min={1} max={100} value={q.points} onChange={(e) => updateContestQuestion(qIdx, 'points', Number(e.target.value || 10))} title="Points" />
                             {contestForm.questions.length > 1 && (
-                              <button type="button" onClick={() => removeContestQuestion(qIdx)} className="text-rose-400 hover:text-rose-300 mt-2"><X size={14} /></button>
+                              <button type="button" onClick={() => removeContestQuestion(qIdx)} className="text-rose-400 hover:text-red-600 mt-2"><X size={14} /></button>
                             )}
                           </div>
                           <div className="grid grid-cols-2 gap-2 ml-8">
                             {q.options.map((opt, oIdx) => (
-                              <input key={oIdx} className={`ui-input text-xs ${opt === q.correctAnswer ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`} value={opt} onChange={(e) => updateContestOption(qIdx, oIdx, e.target.value)} placeholder={`Option ${String.fromCharCode(65 + oIdx)}`} />
+                              <input key={oIdx} className={`px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 text-xs ${opt === q.correctAnswer ? 'border-emerald-200 bg-emerald-500/5' : ''}`} value={opt} onChange={(e) => updateContestOption(qIdx, oIdx, e.target.value)} placeholder={`Option ${String.fromCharCode(65 + oIdx)}`} />
                             ))}
                           </div>
                           <div className="ml-8 mt-2">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Correct Answer</label>
-                            <select className="ui-input text-xs mt-1" value={q.correctAnswer} onChange={(e) => updateContestQuestion(qIdx, 'correctAnswer', e.target.value)}>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Correct Answer</label>
+                            <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 text-xs mt-1" value={q.correctAnswer} onChange={(e) => updateContestQuestion(qIdx, 'correctAnswer', e.target.value)}>
                               <option value="">Select correct answer</option>
                               {q.options.filter(Boolean).map((opt, oIdx) => (
                                 <option key={oIdx} value={opt}>{opt}</option>
@@ -1371,7 +1371,7 @@ export default function ProgramsHub() {
                       ))}
                     </div>
 
-                    <button type="button" className="text-xs text-cyan-300 hover:text-cyan-200 inline-flex items-center gap-1" onClick={addContestQuestion}>
+                    <button type="button" className="text-xs text-cyan-600 hover:text-cyan-700 inline-flex items-center gap-1" onClick={addContestQuestion}>
                       <Plus size={12} /> Add Question
                     </button>
 
@@ -1389,12 +1389,12 @@ export default function ProgramsHub() {
                 <div className="space-y-5">
                   {isAdminOrHead && (
                     <motion.button type="button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={() => setContestView('create')} className="ct-create-trigger">
-                      <div className="ct-create-trigger-icon"><Wand2 size={22} className="text-cyan-300" /></div>
+                      <div className="ct-create-trigger-icon"><Wand2 size={22} className="text-cyan-600" /></div>
                       <div>
-                        <p className="text-base font-black text-white">Create Contest with AI</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Describe a topic and let AI generate questions, options & answers instantly</p>
+                        <p className="text-base font-black text-slate-900">Create Contest with AI</p>
+                        <p className="text-xs text-slate-600 mt-0.5">Describe a topic and let AI generate questions, options & answers instantly</p>
                       </div>
-                      <ChevronRight size={18} className="text-gray-500 ml-auto" />
+                      <ChevronRight size={18} className="text-slate-500 ml-auto" />
                     </motion.button>
                   )}
 
@@ -1410,11 +1410,11 @@ export default function ProgramsHub() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`ct-status-pill ${c.status === 'Active' ? 'ct-status-active' : c.status === 'Closed' ? 'ct-status-closed' : 'ct-status-draft'}`}>{c.status}</span>
-                                <span className="text-[10px] text-gray-500 font-bold">{c.audience}</span>
+                                <span className="text-[10px] text-slate-500 font-bold">{c.audience}</span>
                               </div>
-                              <h4 className="text-base font-black text-white mt-2 truncate">{c.title}</h4>
-                              {c.description && <p className="text-sm text-gray-400 mt-0.5 line-clamp-2">{c.description}</p>}
-                              <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-500">
+                              <h4 className="text-base font-black text-slate-900 mt-2 truncate">{c.title}</h4>
+                              {c.description && <p className="text-sm text-slate-600 mt-0.5 line-clamp-2">{c.description}</p>}
+                              <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-500">
                                 <span className="inline-flex items-center gap-1"><ClipboardList size={12} /> {c.questions?.length || 0} questions</span>
                                 <span className="inline-flex items-center gap-1"><Clock size={12} /> {c.duration} min</span>
                                 <span className="inline-flex items-center gap-1"><Zap size={12} /> {totalPts} pts</span>
@@ -1422,27 +1422,27 @@ export default function ProgramsHub() {
                             </div>
                             {submitted && (
                               <div className="ct-score-chip">
-                                <p className="text-xl font-black text-cyan-300">{attempt.score}</p>
-                                <p className="text-[10px] text-gray-500">/{attempt.totalPoints}</p>
+                                <p className="text-xl font-black text-cyan-600">{attempt.score}</p>
+                                <p className="text-[10px] text-slate-500">/{attempt.totalPoints}</p>
                               </div>
                             )}
                           </div>
 
                           <div className="flex flex-wrap gap-2 mt-4">
                             {!submitted && isOpen && (
-                              <button type="button" className="ct-btn-primary text-xs" onClick={() => handleStartContest(c._id)} disabled={contestBusy === `start:${c._id}`}>
+                              <button type="button" className="ct-px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-xs" onClick={() => handleStartContest(c._id)} disabled={contestBusy === `start:${c._id}`}>
                                 {contestBusy === `start:${c._id}` ? <Loader2 size={13} className="animate-spin" /> : <Rocket size={13} />}
                                 {attempt ? 'Resume' : 'Start Contest'}
                               </button>
                             )}
                             {submitted && <span className="ct-completed-badge"><CheckCircle2 size={13} /> Completed</span>}
                             {isAdminOrHead && c.status === 'Draft' && (
-                              <button type="button" className="ct-btn-ghost text-xs text-emerald-300" onClick={() => handleUpdateContestStatus(c._id, 'Active')} disabled={contestBusy === `status:${c._id}`}>
+                              <button type="button" className="ct-px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-xs text-emerald-600" onClick={() => handleUpdateContestStatus(c._id, 'Active')} disabled={contestBusy === `status:${c._id}`}>
                                 {contestBusy === `status:${c._id}` ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Activate
                               </button>
                             )}
                             {isAdminOrHead && c.status === 'Active' && (
-                              <button type="button" className="ct-btn-ghost text-xs text-rose-300" onClick={() => handleUpdateContestStatus(c._id, 'Closed')} disabled={contestBusy === `status:${c._id}`}>
+                              <button type="button" className="ct-px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 text-xs text-red-600" onClick={() => handleUpdateContestStatus(c._id, 'Closed')} disabled={contestBusy === `status:${c._id}`}>
                                 {contestBusy === `status:${c._id}` ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />} Close
                               </button>
                             )}
@@ -1460,26 +1460,26 @@ export default function ProgramsHub() {
 
           {activeTab === 'mentor' && (
             <div className="space-y-6">
-              <form onSubmit={createMentorHelpRequest} className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6 space-y-3">
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                  <Plus size={14} className="text-cyan-300" /> Raise Mentor Request
+              <form onSubmit={createMentorHelpRequest} className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6 space-y-3">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                  <Plus size={14} className="text-cyan-600" /> Raise Mentor Request
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input className="ui-input" value={mentorForm.topic} onChange={(e) => setMentorForm((p) => ({ ...p, topic: e.target.value }))} placeholder="Topic" required />
-                  <select className="ui-input" value={mentorForm.urgency} onChange={(e) => setMentorForm((p) => ({ ...p, urgency: e.target.value }))}>
+                  <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={mentorForm.topic} onChange={(e) => setMentorForm((p) => ({ ...p, topic: e.target.value }))} placeholder="Topic" required />
+                  <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={mentorForm.urgency} onChange={(e) => setMentorForm((p) => ({ ...p, urgency: e.target.value }))}>
                     <option>Low</option>
                     <option>Medium</option>
                     <option>High</option>
                     <option>Critical</option>
                   </select>
-                  <select className="ui-input" value={mentorForm.preferredMode} onChange={(e) => setMentorForm((p) => ({ ...p, preferredMode: e.target.value }))}>
+                  <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={mentorForm.preferredMode} onChange={(e) => setMentorForm((p) => ({ ...p, preferredMode: e.target.value }))}>
                     <option>Either</option>
                     <option>Online</option>
                     <option>Offline</option>
                   </select>
                 </div>
-                <textarea className="ui-input resize-none" rows={4} value={mentorForm.description} onChange={(e) => setMentorForm((p) => ({ ...p, description: e.target.value }))} placeholder="Explain where you need help and expected outcome." required />
-                <button className="btn btn-primary" type="submit" disabled={mentorFormBusy}>
+                <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none" rows={4} value={mentorForm.description} onChange={(e) => setMentorForm((p) => ({ ...p, description: e.target.value }))} placeholder="Explain where you need help and expected outcome." required />
+                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="submit" disabled={mentorFormBusy}>
                   {mentorFormBusy ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Submit Request
                 </button>
               </form>
@@ -1494,39 +1494,39 @@ export default function ProgramsHub() {
                     const canClose = ['Open', 'Accepted'].includes(row.status) && (isRequester || isMentor || isAdminOrHead);
                     const canReopen = ['Closed', 'Resolved'].includes(row.status) && (isRequester || isAdminOrHead);
                     return (
-                      <article key={row._id} className="rounded-[1.2rem] border border-gray-800 p-4 space-y-3">
+                      <article key={row._id} className="rounded-[1.2rem] border border-slate-200 p-4 space-y-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
-                            <p className="text-sm font-bold text-white">{row.topic}</p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-sm font-bold text-slate-900">{row.topic}</p>
+                            <p className="text-xs text-slate-600 mt-1">
                               {row.requester?.name} • {row.urgency} • {row.preferredMode}
                             </p>
                           </div>
                           <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${MENTOR_STATUS_CLASS[row.status] || MENTOR_STATUS_CLASS.Open}`}>{row.status}</span>
                         </div>
-                        <p className="text-sm text-gray-300">{row.description}</p>
-                        {row.assignedMentor ? <p className="text-xs text-cyan-200">Mentor: {row.assignedMentor?.name || 'Assigned'}</p> : null}
+                        <p className="text-sm text-slate-700">{row.description}</p>
+                        {row.assignedMentor ? <p className="text-xs text-cyan-700">Mentor: {row.assignedMentor?.name || 'Assigned'}</p> : null}
 
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-                          <input className="ui-input md:col-span-8" value={mentorNoteDrafts[row._id] || ''} onChange={(e) => setMentorNoteDrafts((prev) => ({ ...prev, [row._id]: e.target.value }))} placeholder="Optional note / resolution details" />
+                          <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-8" value={mentorNoteDrafts[row._id] || ''} onChange={(e) => setMentorNoteDrafts((prev) => ({ ...prev, [row._id]: e.target.value }))} placeholder="Optional note / resolution details" />
                           <div className="md:col-span-4 flex flex-wrap gap-2">
                             {canAccept && (
-                              <button className="btn btn-primary" type="button" onClick={() => transitionMentorRequest(row, 'Accepted')} disabled={mentorBusy === row._id}>
+                              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => transitionMentorRequest(row, 'Accepted')} disabled={mentorBusy === row._id}>
                                 {mentorBusy === row._id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Accept
                               </button>
                             )}
                             {canResolve && (
-                              <button className="btn btn-secondary" type="button" onClick={() => transitionMentorRequest(row, 'Resolved')} disabled={mentorBusy === row._id}>
+                              <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => transitionMentorRequest(row, 'Resolved')} disabled={mentorBusy === row._id}>
                                 Resolve
                               </button>
                             )}
                             {canClose && (
-                              <button className="btn btn-danger" type="button" onClick={() => transitionMentorRequest(row, 'Closed')} disabled={mentorBusy === row._id}>
+                              <button className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => transitionMentorRequest(row, 'Closed')} disabled={mentorBusy === row._id}>
                                 <X size={13} /> Close
                               </button>
                             )}
                             {canReopen && (
-                              <button className="btn btn-secondary" type="button" onClick={() => transitionMentorRequest(row, 'Open')} disabled={mentorBusy === row._id}>
+                              <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => transitionMentorRequest(row, 'Open')} disabled={mentorBusy === row._id}>
                                 Reopen
                               </button>
                             )}
@@ -1550,21 +1550,21 @@ export default function ProgramsHub() {
                 <QuickStat icon={Rocket} label="Points To Next" value={badgeOverview?.level?.toNext || 0} />
               </div>
 
-              <div className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6">
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                  <BookMarked size={14} className="text-cyan-300" /> Earned Badges
+              <div className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                  <BookMarked size={14} className="text-cyan-600" /> Earned Badges
                 </h3>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {Array.isArray(badgeOverview?.earnedBadges) && badgeOverview.earnedBadges.length > 0 ? (
                     badgeOverview.earnedBadges.map((award) => {
                       const Icon = BADGE_ICONS[award.badgeRule?.icon] || Medal;
                       return (
-                        <article key={award._id} className="rounded-xl border border-gray-800 p-4">
-                          <p className="text-sm font-bold text-white inline-flex items-center gap-2">
-                            <Icon size={14} className="text-amber-300" /> {award.badgeRule?.name || 'Badge'}
+                        <article key={award._id} className="rounded-xl border border-slate-200 p-4">
+                          <p className="text-sm font-bold text-slate-900 inline-flex items-center gap-2">
+                            <Icon size={14} className="text-amber-600" /> {award.badgeRule?.name || 'Badge'}
                           </p>
-                          <p className="text-xs text-gray-400 mt-2">{award.badgeRule?.description}</p>
-                          <p className="text-xs text-cyan-200 mt-2">Awarded {formatDateTime(award.awardedAt)}</p>
+                          <p className="text-xs text-slate-600 mt-2">{award.badgeRule?.description}</p>
+                          <p className="text-xs text-cyan-700 mt-2">Awarded {formatDateTime(award.awardedAt)}</p>
                         </article>
                       );
                     })
@@ -1574,23 +1574,23 @@ export default function ProgramsHub() {
                 </div>
               </div>
 
-              <div className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6 space-y-4">
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
+              <div className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6 space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
                   <Medal size={14} className="text-indigo-300" /> Badge Rules
                 </h3>
                 <div className="space-y-2">
                   {badgeRules.map((rule) => (
-                    <article key={rule._id} className="rounded-xl border border-gray-800 p-3 flex flex-wrap items-center justify-between gap-3">
+                    <article key={rule._id} className="rounded-xl border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-white">{rule.name}</p>
-                        <p className="text-xs text-gray-400 mt-1">{rule.criteriaType} • {rule.criteriaValue}</p>
+                        <p className="text-sm font-semibold text-slate-900">{rule.name}</p>
+                        <p className="text-xs text-slate-600 mt-1">{rule.criteriaType} • {rule.criteriaValue}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${rule.isEnabled ? 'text-emerald-300 border-emerald-500/35 bg-emerald-500/10' : 'text-gray-300 border-gray-700 bg-gray-800/30'}`}>
+                        <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${rule.isEnabled ? 'text-emerald-600 border-emerald-200 bg-emerald-500/10' : 'text-slate-700 border-slate-300 bg-slate-50 border-slate-200 text-slate-600'}`}>
                           {rule.isEnabled ? 'Enabled' : 'Disabled'}
                         </span>
                         {isAdminOrHead && (
-                          <button className="btn btn-secondary" type="button" onClick={() => toggleRule(rule)}>
+                          <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => toggleRule(rule)}>
                             Toggle
                           </button>
                         )}
@@ -1600,21 +1600,21 @@ export default function ProgramsHub() {
                 </div>
 
                 {isAdminOrHead && (
-                  <form onSubmit={createRule} className="border border-gray-800 rounded-xl p-4 space-y-3">
-                    <p className="text-xs uppercase tracking-widest text-gray-400">Create Badge Rule</p>
+                  <form onSubmit={createRule} className="border border-slate-200 rounded-xl p-4 space-y-3">
+                    <p className="text-xs uppercase tracking-widest text-slate-600">Create Badge Rule</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <input className="ui-input" value={badgeRuleForm.name} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, name: e.target.value }))} placeholder="Rule name" required />
-                      <input className="ui-input" value={badgeRuleForm.icon} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, icon: e.target.value }))} placeholder="Icon name" />
-                      <select className="ui-input" value={badgeRuleForm.criteriaType} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, criteriaType: e.target.value }))}>
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={badgeRuleForm.name} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, name: e.target.value }))} placeholder="Rule name" required />
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={badgeRuleForm.icon} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, icon: e.target.value }))} placeholder="Icon name" />
+                      <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={badgeRuleForm.criteriaType} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, criteriaType: e.target.value }))}>
                         <option>PointsThreshold</option>
                         <option>QuestCompletions</option>
                         <option>IdeasConverted</option>
                         <option>MentorResolutions</option>
                       </select>
-                      <input className="ui-input" type="number" min={1} value={badgeRuleForm.criteriaValue} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, criteriaValue: Number(e.target.value || 1) }))} />
+                      <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="number" min={1} value={badgeRuleForm.criteriaValue} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, criteriaValue: Number(e.target.value || 1) }))} />
                     </div>
-                    <textarea className="ui-input resize-none" rows={2} value={badgeRuleForm.description} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, description: e.target.value }))} placeholder="Rule description" />
-                    <button className="btn btn-primary" type="submit" disabled={badgeFormBusy}>
+                    <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none" rows={2} value={badgeRuleForm.description} onChange={(e) => setBadgeRuleForm((p) => ({ ...p, description: e.target.value }))} placeholder="Rule description" />
+                    <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="submit" disabled={badgeFormBusy}>
                       {badgeFormBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Add Rule
                     </button>
                   </form>
@@ -1625,16 +1625,16 @@ export default function ProgramsHub() {
 
           {activeTab === 'ideas' && (
             <div className="space-y-6">
-              <form onSubmit={createIdea} className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6 space-y-3">
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                  <Plus size={14} className="text-cyan-300" /> Submit Project Idea
+              <form onSubmit={createIdea} className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6 space-y-3">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                  <Plus size={14} className="text-cyan-600" /> Submit Project Idea
                 </h3>
-                <input className="ui-input" value={ideaForm.title} onChange={(e) => setIdeaForm((p) => ({ ...p, title: e.target.value }))} placeholder="Idea title" required />
-                <textarea className="ui-input resize-none" rows={3} value={ideaForm.summary} onChange={(e) => setIdeaForm((p) => ({ ...p, summary: e.target.value }))} placeholder="Idea summary" required />
-                <textarea className="ui-input resize-none" rows={3} value={ideaForm.problemStatement} onChange={(e) => setIdeaForm((p) => ({ ...p, problemStatement: e.target.value }))} placeholder="Problem statement" />
-                <input className="ui-input" value={ideaForm.proposedStack} onChange={(e) => setIdeaForm((p) => ({ ...p, proposedStack: e.target.value }))} placeholder="Proposed stack / tooling" />
-                <input className="ui-input" value={ideaForm.tags} onChange={(e) => setIdeaForm((p) => ({ ...p, tags: e.target.value }))} placeholder="Tags (comma separated)" />
-                <button className="btn btn-primary" type="submit" disabled={ideaFormBusy}>
+                <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={ideaForm.title} onChange={(e) => setIdeaForm((p) => ({ ...p, title: e.target.value }))} placeholder="Idea title" required />
+                <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none" rows={3} value={ideaForm.summary} onChange={(e) => setIdeaForm((p) => ({ ...p, summary: e.target.value }))} placeholder="Idea summary" required />
+                <textarea className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none" rows={3} value={ideaForm.problemStatement} onChange={(e) => setIdeaForm((p) => ({ ...p, problemStatement: e.target.value }))} placeholder="Problem statement" />
+                <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={ideaForm.proposedStack} onChange={(e) => setIdeaForm((p) => ({ ...p, proposedStack: e.target.value }))} placeholder="Proposed stack / tooling" />
+                <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={ideaForm.tags} onChange={(e) => setIdeaForm((p) => ({ ...p, tags: e.target.value }))} placeholder="Tags (comma separated)" />
+                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="submit" disabled={ideaFormBusy}>
                   {ideaFormBusy ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Submit Idea
                 </button>
               </form>
@@ -1646,45 +1646,45 @@ export default function ProgramsHub() {
                     const inTeam = Array.isArray(idea.team) && idea.team.some((member) => String(member?._id || member) === String(user._id));
                     const draft = ideaReviewDrafts[idea._id] || { status: idea.status, reviewNote: '', convertDomain: 'Tech' };
                     return (
-                      <article key={idea._id} className="rounded-[1.2rem] border border-gray-800 p-4 space-y-3">
+                      <article key={idea._id} className="rounded-[1.2rem] border border-slate-200 p-4 space-y-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
-                            <p className="text-sm font-bold text-white">{idea.title}</p>
-                            <p className="text-xs text-gray-400 mt-1">{idea.createdBy?.name || 'Member'} • Team {idea.team?.length || 0}</p>
+                            <p className="text-sm font-bold text-slate-900">{idea.title}</p>
+                            <p className="text-xs text-slate-600 mt-1">{idea.createdBy?.name || 'Member'} • Team {idea.team?.length || 0}</p>
                           </div>
                           <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${IDEA_STATUS_CLASS[idea.status] || IDEA_STATUS_CLASS.UnderReview}`}>{idea.status}</span>
                         </div>
-                        <p className="text-sm text-gray-300">{idea.summary}</p>
-                        {idea.problemStatement ? <p className="text-xs text-gray-400">Problem: {idea.problemStatement}</p> : null}
-                        {idea.proposedStack ? <p className="text-xs text-cyan-200">Stack: {idea.proposedStack}</p> : null}
-                        {idea.convertedProject ? <p className="text-xs text-emerald-200">Converted Project: {idea.convertedProject.title}</p> : null}
+                        <p className="text-sm text-slate-700">{idea.summary}</p>
+                        {idea.problemStatement ? <p className="text-xs text-slate-600">Problem: {idea.problemStatement}</p> : null}
+                        {idea.proposedStack ? <p className="text-xs text-cyan-700">Stack: {idea.proposedStack}</p> : null}
+                        {idea.convertedProject ? <p className="text-xs text-emerald-700">Converted Project: {idea.convertedProject.title}</p> : null}
 
                         <div className="flex flex-wrap gap-2">
                           {!isOwner && (
-                            <button className="btn btn-secondary" type="button" onClick={() => joinIdea(idea._id)} disabled={ideaBusy === `join:${idea._id}`}>
+                            <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => joinIdea(idea._id)} disabled={ideaBusy === `join:${idea._id}`}>
                               {ideaBusy === `join:${idea._id}` ? <Loader2 size={13} className="animate-spin" /> : <Users size={13} />} {inTeam ? 'Leave Team' : 'Join Team'}
                             </button>
                           )}
                         </div>
 
                         {isAdminOrHead && idea.status !== 'Converted' && (
-                          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 border border-gray-800 rounded-xl p-3">
-                            <select className="ui-input md:col-span-3" value={draft.status} onChange={(e) => setIdeaReviewDrafts((prev) => ({ ...prev, [idea._id]: { ...draft, status: e.target.value } }))}>
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 border border-slate-200 rounded-xl p-3">
+                            <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-3" value={draft.status} onChange={(e) => setIdeaReviewDrafts((prev) => ({ ...prev, [idea._id]: { ...draft, status: e.target.value } }))}>
                               <option>UnderReview</option>
                               <option>Approved</option>
                               <option>Rejected</option>
                             </select>
-                            <input className="ui-input md:col-span-5" value={draft.reviewNote} onChange={(e) => setIdeaReviewDrafts((prev) => ({ ...prev, [idea._id]: { ...draft, reviewNote: e.target.value } }))} placeholder="Review note" />
-                            <button className="btn btn-primary md:col-span-2" type="button" onClick={() => reviewIdea(idea._id)} disabled={ideaBusy === `review:${idea._id}`}>
+                            <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-5" value={draft.reviewNote} onChange={(e) => setIdeaReviewDrafts((prev) => ({ ...prev, [idea._id]: { ...draft, reviewNote: e.target.value } }))} placeholder="Review note" />
+                            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-2" type="button" onClick={() => reviewIdea(idea._id)} disabled={ideaBusy === `review:${idea._id}`}>
                               {ideaBusy === `review:${idea._id}` ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Review
                             </button>
-                            <select className="ui-input md:col-span-2" value={draft.convertDomain} onChange={(e) => setIdeaReviewDrafts((prev) => ({ ...prev, [idea._id]: { ...draft, convertDomain: e.target.value } }))}>
+                            <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-2" value={draft.convertDomain} onChange={(e) => setIdeaReviewDrafts((prev) => ({ ...prev, [idea._id]: { ...draft, convertDomain: e.target.value } }))}>
                               <option>Tech</option>
                               <option>Management</option>
                               <option>PR</option>
                             </select>
                             {idea.status === 'Approved' && (
-                              <button className="btn btn-secondary md:col-span-12" type="button" onClick={() => convertIdea(idea._id)} disabled={ideaBusy === `convert:${idea._id}`}>
+                              <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-12" type="button" onClick={() => convertIdea(idea._id)} disabled={ideaBusy === `convert:${idea._id}`}>
                                 {ideaBusy === `convert:${idea._id}` ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Convert To Project
                               </button>
                             )}
@@ -1703,29 +1703,29 @@ export default function ProgramsHub() {
           {activeTab === 'office-hours' && (
             <div className="space-y-6">
               {isAdminOrHead && (
-                <form onSubmit={createSlot} className="rounded-[1.5rem] border border-gray-800 p-5 md:p-6 space-y-3">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-300 inline-flex items-center gap-2">
-                    <Plus size={14} className="text-cyan-300" /> Create Office-Hour Slot
+                <form onSubmit={createSlot} className="rounded-[1.5rem] border border-slate-200 p-5 md:p-6 space-y-3">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+                    <Plus size={14} className="text-cyan-600" /> Create Office-Hour Slot
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input className="ui-input" value={slotForm.title} onChange={(e) => setSlotForm((p) => ({ ...p, title: e.target.value }))} placeholder="Slot title" required />
-                    <input className="ui-input" value={slotForm.topic} onChange={(e) => setSlotForm((p) => ({ ...p, topic: e.target.value }))} placeholder="Topic" />
-                    <select className="ui-input" value={slotForm.mode} onChange={(e) => setSlotForm((p) => ({ ...p, mode: e.target.value }))}>
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={slotForm.title} onChange={(e) => setSlotForm((p) => ({ ...p, title: e.target.value }))} placeholder="Slot title" required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={slotForm.topic} onChange={(e) => setSlotForm((p) => ({ ...p, topic: e.target.value }))} placeholder="Topic" />
+                    <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={slotForm.mode} onChange={(e) => setSlotForm((p) => ({ ...p, mode: e.target.value }))}>
                       <option>Online</option>
                       <option>Offline</option>
                       <option>Hybrid</option>
                     </select>
-                    <input className="ui-input" type="number" min={1} max={500} value={slotForm.capacity} onChange={(e) => setSlotForm((p) => ({ ...p, capacity: Number(e.target.value || 1) }))} placeholder="Capacity" required />
-                    <input className="ui-input" value={slotForm.locationOrLink} onChange={(e) => setSlotForm((p) => ({ ...p, locationOrLink: e.target.value }))} placeholder="Location / meeting link" />
-                    <select className="ui-input" value={slotForm.status} onChange={(e) => setSlotForm((p) => ({ ...p, status: e.target.value }))}>
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="number" min={1} max={500} value={slotForm.capacity} onChange={(e) => setSlotForm((p) => ({ ...p, capacity: Number(e.target.value || 1) }))} placeholder="Capacity" required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={slotForm.locationOrLink} onChange={(e) => setSlotForm((p) => ({ ...p, locationOrLink: e.target.value }))} placeholder="Location / meeting link" />
+                    <select className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" value={slotForm.status} onChange={(e) => setSlotForm((p) => ({ ...p, status: e.target.value }))}>
                       <option>Open</option>
                       <option>Closed</option>
                       <option>Cancelled</option>
                     </select>
-                    <input className="ui-input" type="datetime-local" value={slotForm.startTime} onChange={(e) => setSlotForm((p) => ({ ...p, startTime: e.target.value }))} required />
-                    <input className="ui-input" type="datetime-local" value={slotForm.endTime} onChange={(e) => setSlotForm((p) => ({ ...p, endTime: e.target.value }))} required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="datetime-local" value={slotForm.startTime} onChange={(e) => setSlotForm((p) => ({ ...p, startTime: e.target.value }))} required />
+                    <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400" type="datetime-local" value={slotForm.endTime} onChange={(e) => setSlotForm((p) => ({ ...p, endTime: e.target.value }))} required />
                   </div>
-                  <button className="btn btn-primary" type="submit" disabled={slotFormBusy}>
+                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="submit" disabled={slotFormBusy}>
                     {slotFormBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Create Slot
                   </button>
                 </form>
@@ -1736,24 +1736,24 @@ export default function ProgramsHub() {
                   officeSlots.map((slot) => {
                     const myBooking = myBookings.find((row) => String(row.slot?._id || row.slot) === String(slot._id));
                     return (
-                      <article key={slot._id} className="rounded-[1.2rem] border border-gray-800 p-4 space-y-3">
+                      <article key={slot._id} className="rounded-[1.2rem] border border-slate-200 p-4 space-y-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
-                            <p className="text-sm font-bold text-white">{slot.title}</p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-sm font-bold text-slate-900">{slot.title}</p>
+                            <p className="text-xs text-slate-600 mt-1">
                               {slot.topic || 'General'} • {slot.mode} • Mentor: {slot.mentor?.name || 'N/A'}
                             </p>
                           </div>
                           <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${SLOT_STATUS_CLASS[slot.status] || SLOT_STATUS_CLASS.Open}`}>{slot.status}</span>
                         </div>
-                        <p className="text-xs text-cyan-200">{formatDateTime(slot.startTime)} - {formatDateTime(slot.endTime)}</p>
-                        <p className="text-xs text-gray-400">Capacity {slot.bookedCount || 0}/{slot.capacity} • Seats left {slot.seatsLeft ?? Math.max(0, Number(slot.capacity || 0) - Number(slot.bookedCount || 0))}</p>
-                        {slot.locationOrLink ? <p className="text-xs text-gray-300">{slot.locationOrLink}</p> : null}
+                        <p className="text-xs text-cyan-700">{formatDateTime(slot.startTime)} - {formatDateTime(slot.endTime)}</p>
+                        <p className="text-xs text-slate-600">Capacity {slot.bookedCount || 0}/{slot.capacity} • Seats left {slot.seatsLeft ?? Math.max(0, Number(slot.capacity || 0) - Number(slot.bookedCount || 0))}</p>
+                        {slot.locationOrLink ? <p className="text-xs text-slate-700">{slot.locationOrLink}</p> : null}
 
                         {!isAdminOrHead && (
                           <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-                            <input className="ui-input md:col-span-9" value={bookingNotes[slot._id] || ''} onChange={(e) => setBookingNotes((prev) => ({ ...prev, [slot._id]: e.target.value }))} placeholder="Optional note for mentor" />
-                            <button className="btn btn-primary md:col-span-3" type="button" onClick={() => bookSlot(slot._id)} disabled={officeBusy === `book:${slot._id}` || slot.isBookedByMe || slot.status !== 'Open'}>
+                            <input className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 md:col-span-9" value={bookingNotes[slot._id] || ''} onChange={(e) => setBookingNotes((prev) => ({ ...prev, [slot._id]: e.target.value }))} placeholder="Optional note for mentor" />
+                            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 md:col-span-3" type="button" onClick={() => bookSlot(slot._id)} disabled={officeBusy === `book:${slot._id}` || slot.isBookedByMe || slot.status !== 'Open'}>
                               {officeBusy === `book:${slot._id}` ? <Loader2 size={13} className="animate-spin" /> : <CalendarClock size={13} />} {slot.isBookedByMe ? 'Booked' : 'Book'}
                             </button>
                           </div>
@@ -1761,25 +1761,25 @@ export default function ProgramsHub() {
 
                         {isAdminOrHead && (
                           <div className="flex flex-wrap gap-2">
-                            <button className="btn btn-secondary" type="button" onClick={() => updateSlotStatus(slot._id, 'Open')} disabled={officeBusy === `slot:${slot._id}`}>Open</button>
-                            <button className="btn btn-secondary" type="button" onClick={() => updateSlotStatus(slot._id, 'Closed')} disabled={officeBusy === `slot:${slot._id}`}>Close</button>
-                            <button className="btn btn-danger" type="button" onClick={() => updateSlotStatus(slot._id, 'Cancelled')} disabled={officeBusy === `slot:${slot._id}`}>Cancel</button>
+                            <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => updateSlotStatus(slot._id, 'Open')} disabled={officeBusy === `slot:${slot._id}`}>Open</button>
+                            <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => updateSlotStatus(slot._id, 'Closed')} disabled={officeBusy === `slot:${slot._id}`}>Close</button>
+                            <button className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => updateSlotStatus(slot._id, 'Cancelled')} disabled={officeBusy === `slot:${slot._id}`}>Cancel</button>
                           </div>
                         )}
 
                         {myBooking && (
-                          <div className="border border-gray-800 rounded-xl p-3">
-                            <p className="text-xs text-gray-400">My Booking: {myBooking.status}</p>
+                          <div className="border border-slate-200 rounded-xl p-3">
+                            <p className="text-xs text-slate-600">My Booking: {myBooking.status}</p>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {myBooking.status === 'Booked' && (
-                                <button className="btn btn-danger" type="button" onClick={() => applyBookingAction(myBooking._id, 'Cancel')} disabled={officeBusy === `booking:${myBooking._id}`}>
+                                <button className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => applyBookingAction(myBooking._id, 'Cancel')} disabled={officeBusy === `booking:${myBooking._id}`}>
                                   Cancel
                                 </button>
                               )}
                               {isAdminOrHead && myBooking.status === 'Booked' && (
                                 <>
-                                  <button className="btn btn-secondary" type="button" onClick={() => applyBookingAction(myBooking._id, 'Complete')} disabled={officeBusy === `booking:${myBooking._id}`}>Mark Complete</button>
-                                  <button className="btn btn-secondary" type="button" onClick={() => applyBookingAction(myBooking._id, 'NoShow')} disabled={officeBusy === `booking:${myBooking._id}`}>No Show</button>
+                                  <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => applyBookingAction(myBooking._id, 'Complete')} disabled={officeBusy === `booking:${myBooking._id}`}>Mark Complete</button>
+                                  <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2" type="button" onClick={() => applyBookingAction(myBooking._id, 'NoShow')} disabled={officeBusy === `booking:${myBooking._id}`}>No Show</button>
                                 </>
                               )}
                             </div>
@@ -1802,36 +1802,36 @@ export default function ProgramsHub() {
 
 function QuickStat({ icon: Icon, label, value }) {
   return (
-    <article className="rounded-2xl border border-gray-800 px-5 py-4">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-black inline-flex items-center gap-1">
-        <Icon size={12} className="text-cyan-300" /> {label}
+    <article className="rounded-2xl border border-slate-200 px-5 py-4">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black inline-flex items-center gap-1">
+        <Icon size={12} className="text-cyan-600" /> {label}
       </p>
-      <p className="text-2xl font-black text-white mt-2">{value}</p>
+      <p className="text-2xl font-black text-slate-900 mt-2">{value}</p>
     </article>
   );
 }
 
 function StatPill({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-xl border border-gray-800 px-3 py-2 inline-flex items-center gap-2 text-xs text-gray-300">
-      <Icon size={13} className="text-cyan-300" />
+    <div className="rounded-xl border border-slate-200 px-3 py-2 inline-flex items-center gap-2 text-xs text-slate-700">
+      <Icon size={13} className="text-cyan-600" />
       <span className="uppercase tracking-widest text-[10px]">{label}</span>
-      <span className="font-black text-white">{value}</span>
+      <span className="font-black text-slate-900">{value}</span>
     </div>
   );
 }
 
 function ToggleRow({ label, value, onToggle }) {
   return (
-    <div className="rounded-xl border border-gray-800 px-4 py-3 flex items-center justify-between gap-3">
-      <span className="text-xs uppercase tracking-widest text-gray-300">{label}</span>
+    <div className="rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+      <span className="text-xs uppercase tracking-widest text-slate-700">{label}</span>
       <button
         type="button"
         onClick={onToggle}
         aria-label={`Toggle ${label}`}
         aria-pressed={value}
         className={`relative h-7 w-12 rounded-full border transition-colors ${
-          value ? 'border-emerald-500/50 bg-emerald-500/20' : 'border-gray-700 bg-gray-800/40'
+          value ? 'border-emerald-200 bg-emerald-500/20' : 'border-slate-300 bg-slate-50 border-slate-200 text-slate-600'
         }`}
       >
         <span

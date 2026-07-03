@@ -26,7 +26,7 @@ const streamLimiter = buildRateLimiter({
   name: 'communication-stream',
   windowMs: 60 * 1000,
   max: 20,
-  keyGenerator: (req) => req.user?._id || req.ip || 'unknown',
+  keyGenerator: (req) => req.user ? String(req.user._id) : 'unknown',
 });
 
 router.get('/messages', protect, authorize('Admin', 'Head'), communicationLimiter, listMessages);

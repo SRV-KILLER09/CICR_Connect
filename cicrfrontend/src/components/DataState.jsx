@@ -6,10 +6,10 @@ export function DataLoading({ label = 'Loading data...' }) {
       <div className="space-y-4">
         <div className="inline-flex items-center gap-3">
           <div className="relative w-8 h-8">
-            <span className="absolute inset-0 rounded-full border-2 border-blue-500/20 animate-ping" />
+            <span className="absolute inset-0 rounded-full border-2 border-blue-300 animate-ping" />
             <span className="absolute inset-0.5 rounded-full border-2 border-t-blue-400 border-r-transparent border-b-transparent border-l-transparent animate-spin" />
           </div>
-          <span className="text-xs text-gray-400 uppercase tracking-widest font-bold">{label}</span>
+          <span className="text-xs text-slate-600 uppercase tracking-widest font-bold">{label}</span>
         </div>
 
         <div className="grid gap-2">
@@ -36,10 +36,10 @@ export function DataEmpty({
     <div className="ui-empty py-12">
       <div className="inline-flex flex-col items-center gap-3">
         <SearchX size={28} className="text-gray-600" />
-        <p className="text-sm text-gray-300 font-semibold">{displayTitle}</p>
-        <p className="text-xs text-gray-500 max-w-md">{displayHint}</p>
+        <p className="text-sm text-slate-700 font-semibold">{displayTitle}</p>
+        <p className="text-xs text-slate-500 max-w-md">{displayHint}</p>
         {actionLabel && onAction ? (
-          <button type="button" onClick={onAction} className="btn btn-ghost mt-1">
+          <button type="button" onClick={onAction} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 mt-1">
             {actionLabel}
           </button>
         ) : null}
@@ -58,7 +58,7 @@ export function DataError({ label = 'Something went wrong.', hint = 'Please retr
         <p className="text-sm text-red-300/80">{label}</p>
         <p className="text-xs text-red-200/70 max-w-md">{hint}</p>
         {onRetry ? (
-          <button type="button" onClick={onRetry} className="btn btn-danger mt-1">
+          <button type="button" onClick={onRetry} className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 mt-1">
             <RotateCcw size={13} /> Retry
           </button>
         ) : null}

@@ -19,14 +19,14 @@ const toastPalette = {
   },
   success: {
     icon: CheckCircle2,
-    wrapper: 'border-emerald-500/25 text-emerald-100',
+    wrapper: 'border-emerald-200 text-emerald-800',
     iconColor: 'text-emerald-400',
     bg: 'rgba(6,78,59,0.55)',
     glow: '0 0 20px rgba(16,185,129,0.15)',
   },
   info: {
     icon: Info,
-    wrapper: 'border-cyan-400/25 text-cyan-100',
+    wrapper: 'border-blue-200 text-blue-700',
     iconColor: 'text-cyan-400',
     bg: 'rgba(8,51,68,0.55)',
     glow: '0 0 20px rgba(34,211,238,0.15)',
@@ -87,7 +87,7 @@ export default function GlobalToastHost() {
                 <button
                   type="button"
                   onClick={() => setToasts((prev) => prev.filter((item) => item.id !== toast.id))}
-                  className="rounded-md p-0.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  className="rounded-md p-0.5 text-slate-900/60 hover:text-slate-900 hover:bg-slate-200 transition-colors"
                   aria-label="Dismiss notification"
                   title="Dismiss"
                 >

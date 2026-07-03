@@ -22,9 +22,9 @@ export default function VerifyEmail() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 page-motion-b">
-      <div className="w-full max-w-lg border border-gray-800 rounded-3xl p-8 section-motion section-motion-delay-1">
+      <div className="w-full max-w-lg border border-slate-200 rounded-3xl p-8 section-motion section-motion-delay-1">
         <p className="text-[10px] uppercase tracking-[0.24em] text-blue-400 font-black">Email Verification</p>
-        <p className="text-gray-200 mt-3">{status}</p>
+        <p className="text-slate-700 mt-3">{status}</p>
       </div>
     </div>
   );

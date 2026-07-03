@@ -4,6 +4,7 @@ import axios from 'axios';
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://cicrcombined.onrender.com/api',
   timeout: 20000,
+  withCredentials: true,
   // baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
   // timeout: 20000,
 
@@ -160,10 +161,6 @@ export const prewarmBackend = () => {
 
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -183,7 +180,10 @@ API.interceptors.response.use(
 
 // Auth
 export const login = (formData) => API.post('/auth/login', formData);
+export const requestMagicLink = (formData) => API.post('/auth/login/magic-link', formData);
+export const verifyMagicLink = (formData) => API.post('/auth/login/magic-link/verify', formData);
 export const register = (formData) => API.post('/auth/register', formData);
+export const verifySignupOtp = (formData) => API.post('/auth/register/verify-otp', formData);
 export const verifyEmail = (token) => API.get(`/auth/verifyemail/${token}`);
 export const sendPasswordResetOtp = (payload) => API.post('/auth/password/send-otp', payload);
 export const resetPasswordWithOtp = (payload) => API.post('/auth/password/reset-with-otp', payload);
@@ -201,12 +201,15 @@ export const getMe = () =>
 
 // Updates personal details (Year, Phone, Branch, Batch)
 export const updateProfile = (data) => API.put('/auth/profile', data);
-export const fetchDirectoryMembers = () =>
-  cachedGet({
-    key: 'users:directory',
-    request: () => API.get('/users/directory'),
+export const fetchDirectoryMembers = (params = {}) => {
+  const query = new URLSearchParams(params);
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  return cachedGet({
+    key: `users:directory:${suffix}`,
+    request: () => API.get(`/users/directory${suffix}`),
     ttlMs: 2 * 60 * 1000,
   });
+};
 export const fetchMyInsights = () =>
   cachedGet({
     key: 'users:insights:me',
@@ -229,14 +232,18 @@ export const acknowledgeWarnings = () => API.post('/users/warnings/ack');
 
 
 // User Management
-export const fetchMembers = () =>
-  cachedGet({
-    key: 'admin:users',
-    request: () => API.get('/admin/users'),
+export const fetchMembers = (params = {}) => {
+  const query = new URLSearchParams(params);
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  return cachedGet({
+    key: `admin:users:${suffix}`,
+    request: () => API.get(`/admin/users${suffix}`),
     ttlMs: 45 * 1000,
-  }); 
+  });
+}; 
 export const updateUserByAdmin = (id, data) => API.put(`/admin/users/${id}`, data);
 export const deleteUser = (id) => API.delete(`/admin/users/${id}`);
+export const sendBulkEmail = (data) => API.post('/admin/users/bulk-email', data);
 export const fetchPendingAdminActions = () =>
   cachedGet({
     key: 'admin:actions:pending',
@@ -571,6 +578,17 @@ export const fetchApplications = (params = {}) => {
 };
 export const updateApplication = (id, payload) => API.patch(`/applications/${id}`, payload);
 export const sendApplicationInvite = (id) => API.post(`/applications/${id}/send-invite`);
+export const scheduleApplicationInterview = (id, payload) => API.post(`/applications/${id}/interview`, payload);
+export const gradeApplicationInterview = (id, payload) => API.post(`/applications/${id}/grade`, payload);
+export const finalizeApplication = (id, action) => API.post(`/applications/${id}/finalize`, { action });
+
+// Recruitment Drives
+export const fetchRecruitmentDrives = (params = {}) => API.get('/recruitment', { params });
+export const fetchPublicRecruitmentDrives = () => API.get('/recruitment/public');
+export const fetchRecruitmentDrive = (id) => API.get(`/recruitment/${id}`);
+export const fetchPublicRecruitmentDrive = (id) => API.get(`/recruitment/public/${id}`);
+export const createRecruitmentDrive = (payload) => API.post('/recruitment', payload);
+export const updateRecruitmentDrive = (id, payload) => API.put(`/recruitment/${id}`, payload);
 
 // Learning Hub
 export const fetchLearningOverview = () =>
@@ -745,5 +763,9 @@ export const fetchMyContestAttempts = () =>
 export const clearLocalApiCache = (matcher = '') => {
   clearApiCache(matcher);
 };
+
+export const submitInquiry = (payload) => API.post('/inquiries', payload);
+
+export const globalSearch = (q) => API.get(`/search?q=${encodeURIComponent(q)}`);
 
 export default API;

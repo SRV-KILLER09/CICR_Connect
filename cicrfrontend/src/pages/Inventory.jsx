@@ -19,15 +19,16 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import {
   adjustInventoryStock,
   adjustInventoryStockById,
   fetchInventory,
   issueInventoryItem,
+  addInventoryItem
 } from '../api';
 import PageHeader from '../components/PageHeader';
-import { DataEmpty } from '../components/DataState';
+import Modal from '../components/ui/Modal';
+import SideDrawer from '../components/ui/SideDrawer';
 
 const STOCK_FILTERS = [
   { id: 'all', label: 'All' },
@@ -59,35 +60,16 @@ const getStockHealth = (item) => {
   const total = Math.max(Number(item?.totalQuantity || 0), 0);
   const available = Math.max(Number(item?.availableQuantity || 0), 0);
   if (available === 0 || total === 0) {
-    return {
-      id: 'critical',
-      label: 'Critical',
-      className: 'text-rose-200 border-rose-500/35 bg-rose-500/10',
-    };
+    return { id: 'critical', label: 'Critical', className: 'text-rose-400 border-red-200 bg-rose-500/10' };
   }
-
   const ratio = available / total;
   if (ratio <= 0.2 || available <= 3) {
-    return {
-      id: 'critical',
-      label: 'Critical',
-      className: 'text-rose-200 border-rose-500/35 bg-rose-500/10',
-    };
+    return { id: 'critical', label: 'Critical', className: 'text-rose-400 border-red-200 bg-rose-500/10' };
   }
-
   if (ratio <= 0.45 || available <= 8) {
-    return {
-      id: 'low',
-      label: 'Low',
-      className: 'text-amber-200 border-amber-500/35 bg-amber-500/10',
-    };
+    return { id: 'low', label: 'Low', className: 'text-amber-400 border-amber-200 bg-amber-500/10' };
   }
-
-  return {
-    id: 'healthy',
-    label: 'Healthy',
-    className: 'text-emerald-200 border-emerald-500/35 bg-emerald-500/10',
-  };
+  return { id: 'healthy', label: 'Healthy', className: 'text-emerald-400 border-emerald-200 bg-emerald-500/10' };
 };
 
 export default function Inventory() {
@@ -95,7 +77,7 @@ export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [stockFilter, setStockFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null); // for Issue Modal
   const [expandedItemId, setExpandedItemId] = useState('');
   const [issueData, setIssueData] = useState({ quantity: 1, project: '' });
   const [isIssuing, setIsIssuing] = useState(false);
@@ -103,11 +85,13 @@ export default function Inventory() {
   const [adjustMode, setAdjustMode] = useState('add');
   const [adjustQty, setAdjustQty] = useState(1);
   const [adjusting, setAdjusting] = useState(false);
+  
+  const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
 
   const profileData = JSON.parse(localStorage.getItem('profile') || '{}');
   const userData = profileData.result || profileData;
-  const isAdmin =
-    userData.role?.toLowerCase() === 'admin' || userData.role?.toLowerCase() === 'head';
+  const isAdmin = userData.role?.toLowerCase() === 'admin' || userData.role?.toLowerCase() === 'head';
 
   useEffect(() => {
     loadData();
@@ -127,7 +111,6 @@ export default function Inventory() {
       const { data } = await fetchInventory();
       setItems(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
       dispatchToast('Failed to load inventory.', 'error');
     } finally {
       setLoading(false);
@@ -141,17 +124,11 @@ export default function Inventory() {
     const unitsIssued = Math.max(unitsTotal - unitsAvailable, 0);
     const attentionCount = items.filter((row) => getStockHealth(row).id !== 'healthy').length;
 
-    return {
-      totalParts,
-      unitsAvailable,
-      unitsIssued,
-      attentionCount,
-    };
+    return { totalParts, unitsAvailable, unitsIssued, attentionCount };
   }, [items]);
 
   const filteredItems = useMemo(() => {
     const normalized = searchTerm.trim().toLowerCase();
-
     const rows = items.filter((item) => {
       const matchesSearch =
         !normalized ||
@@ -159,7 +136,6 @@ export default function Inventory() {
         String(item.category || '').toLowerCase().includes(normalized) ||
         String(item.location || '').toLowerCase().includes(normalized);
       if (!matchesSearch) return false;
-
       if (stockFilter === 'all') return true;
       return getStockHealth(item).id === stockFilter;
     });
@@ -197,22 +173,13 @@ export default function Inventory() {
       try {
         await adjustInventoryStock(payload);
       } catch {
-        await adjustInventoryStockById(itemId, {
-          mode: adjustMode,
-          quantity: Number(adjustQty),
-        });
+        await adjustInventoryStockById(itemId, { mode: adjustMode, quantity: Number(adjustQty) });
       }
       await loadData();
       closeEdit();
       dispatchToast('Stock updated successfully.', 'success');
     } catch (err) {
-      const status = err.response?.status;
-      const message =
-        err.response?.data?.message ||
-        (status === 404
-          ? 'Adjust API not found. Restart backend and try again.'
-          : `Failed to adjust stock${status ? ` (HTTP ${status})` : ''}`);
-      dispatchToast(message, 'error');
+      dispatchToast('Failed to adjust stock', 'error');
     } finally {
       setAdjusting(false);
     }
@@ -221,7 +188,6 @@ export default function Inventory() {
   const handleIssueSubmit = async (e) => {
     e.preventDefault();
     if (!selectedItem) return;
-
     setIsIssuing(true);
     try {
       await issueInventoryItem({
@@ -239,421 +205,231 @@ export default function Inventory() {
       setIsIssuing(false);
     }
   };
+  
+  const handleAddItemSubmit = async (e) => {
+    e.preventDefault();
+    setAddLoading(true);
+    const formData = new FormData(e.target);
+    const payload = {
+      itemName: formData.get('itemName'),
+      category: formData.get('category'),
+      location: formData.get('location'),
+      totalQuantity: Number(formData.get('quantity')),
+    };
+    
+    try {
+      await addInventoryItem(payload);
+      dispatchToast('Item added successfully.', 'success');
+      setIsAddDrawerOpen(false);
+      loadData();
+    } catch {
+      dispatchToast('Failed to add item.', 'error');
+    } finally {
+      setAddLoading(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="h-[70vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="animate-spin text-blue-500" size={42} />
-        <p className="text-gray-400 text-xs uppercase tracking-[0.2em] font-semibold">Loading inventory</p>
+        <Loader2 className="animate-spin text-blue-600" size={42} />
       </div>
     );
   }
 
   return (
-    <div className="ui-page space-y-8 pb-20 page-motion-a">
-      <header className="section-motion section-motion-delay-1">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 space-y-8 pb-20">
+      <header>
         <PageHeader
           eyebrow="Inventory Operations"
           title="Lab Inventory"
           subtitle="Operational stock board for parts, issue records, and adjustment history."
           icon={Database}
           actions={
-            isAdmin ? (
-              <Link to="/inventory/add" className="btn btn-primary">
+            isAdmin && (
+              <button onClick={() => setIsAddDrawerOpen(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">
                 <Plus size={14} /> Add Part
-              </Link>
-            ) : null
+              </button>
+            )
           }
         />
       </header>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 section-motion section-motion-delay-2">
-        <Metric label="Parts" value={metrics.totalParts} hint="Tracked components" />
-        <Metric label="Available" value={metrics.unitsAvailable} hint="Units ready to issue" tone="emerald" />
-        <Metric label="Issued" value={metrics.unitsIssued} hint="Units in circulation" tone="blue" />
-        <Metric label="Needs Attention" value={metrics.attentionCount} hint="Low or critical stock" tone="amber" />
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Metric label="Parts" value={metrics.totalParts} tone="slate" />
+        <Metric label="Available" value={metrics.unitsAvailable} tone="emerald" />
+        <Metric label="Issued" value={metrics.unitsIssued} tone="blue" />
+        <Metric label="Needs Attention" value={metrics.attentionCount} tone="amber" />
       </section>
 
-      <section className="section-motion section-motion-delay-2">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-md">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search name, category, location"
-              className="ui-input pl-9"
-            />
-          </div>
+      <section className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 rounded-2xl sticky top-20 z-20 mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative w-full lg:max-w-md">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search parts, category, location..."
+            className="input-field pl-9"
+          />
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            {STOCK_FILTERS.map((filter) => (
-              <button
-                key={filter.id}
-                type="button"
-                onClick={() => setStockFilter(filter.id)}
-                className={`btn !w-auto !px-3 !py-2 ${
-                  stockFilter === filter.id ? 'btn-primary' : 'btn-ghost'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {STOCK_FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => setStockFilter(filter.id)}
+              className={`btn !w-auto !px-3 !py-2 ${
+                stockFilter === filter.id ? 'px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2' : 'px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
       </section>
 
-      <section className="section-motion section-motion-delay-3">
+      <section>
         {filteredItems.length === 0 ? (
-          <DataEmpty
-            label="No inventory rows match the current filters."
-            actionLabel="Clear filters"
-            onAction={() => {
-              setSearchTerm('');
-              setStockFilter('all');
-            }}
-          />
+          <div className="text-center py-10">
+            <p className="text-slate-600">No inventory items match the filters.</p>
+          </div>
         ) : (
-          <div className="border border-gray-800/80 rounded-2xl overflow-hidden">
-            <div className="hidden lg:grid grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.2fr)_auto] gap-4 px-4 py-3 ui-table-head border-b border-gray-800/80">
-              <p>Component</p>
-              <p>Stock</p>
-              <p>Context</p>
-              <p className="text-right">Actions</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredItems.map((item, idx) => {
+              const health = getStockHealth(item);
+              const available = Math.max(Number(item.availableQuantity || 0), 0);
+              const total = Math.max(Number(item.totalQuantity || 0), 0);
+              const ratio = total > 0 ? Math.min((available / total) * 100, 100) : 0;
+              const isExpanded = expandedItemId === item._id;
 
-            <div className="divide-y divide-gray-800/70">
-              {filteredItems.map((item, idx) => {
-                const health = getStockHealth(item);
-                const available = Math.max(Number(item.availableQuantity || 0), 0);
-                const total = Math.max(Number(item.totalQuantity || 0), 0);
-                const issued = Math.max(total - available, 0);
-                const ratio = total > 0 ? Math.min((available / total) * 100, 100) : 0;
-                const history = Array.isArray(item.issuedTo) ? [...item.issuedTo].reverse() : [];
-                const isExpanded = expandedItemId === item._id;
-                const isEditing = editingItemId === item._id;
-
-                return (
-                  <motion.article
-                    key={item._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.025 }}
-                    className="px-4 py-4"
-                  >
-                    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.2fr)_auto] gap-4">
-                      <div className="min-w-0">
-                        <p className="text-base font-semibold text-white truncate">{item.itemName}</p>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] px-2 py-0.5 rounded-full border border-gray-700/80 text-gray-300">
-                            {item.category || 'General'}
-                          </span>
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full border ${health.className}`}>
-                            {health.label}
-                          </span>
-                          <span className="text-[11px] text-gray-500 inline-flex items-center gap-1">
-                            <MapPin size={12} /> {item.location || 'Lab'}
-                          </span>
-                        </div>
-                      </div>
-
+              return (
+                <motion.article
+                  key={item._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.025 }}
+                  className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden flex flex-col"
+                >
+                  <div className="p-5 flex-1">
+                    <div className="flex justify-between items-start mb-3">
                       <div>
-                        <div className="flex items-center justify-between text-sm">
-                          <p className="text-gray-300 inline-flex items-center gap-1">
-                            <Box size={13} className="text-blue-300" />
-                            {available} / {total}
-                          </p>
-                          <p className="text-xs text-gray-500">{Math.round(ratio)}%</p>
-                        </div>
-                        <div className="mt-2 h-2 bg-white/5 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${ratio}%` }}
-                            transition={{ duration: 0.65, ease: 'easeOut' }}
-                            className={
-                              health.id === 'critical'
-                                ? 'h-full bg-gradient-to-r from-rose-500 to-red-400'
-                                : health.id === 'low'
-                                ? 'h-full bg-gradient-to-r from-amber-500 to-orange-400'
-                                : 'h-full bg-gradient-to-r from-emerald-500 to-cyan-400'
-                            }
-                          />
+                        <h3 className="font-bold text-lg text-slate-900 mb-1">{item.itemName}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">{item.category || 'General'}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${health.className}`}>{health.label}</span>
                         </div>
                       </div>
+                      <button onClick={() => setExpandedItemId(isExpanded ? '' : item._id)} className="text-slate-600 hover:text-slate-900 p-1">
+                        {isExpanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                      </button>
+                    </div>
 
-                      <div className="text-sm text-gray-400">
-                        <p className="inline-flex items-center gap-1.5">
-                          <ArrowUp size={13} className="text-emerald-300" /> Available: {available}
-                        </p>
-                        <p className="mt-1 inline-flex items-center gap-1.5">
-                          <ArrowDown size={13} className="text-amber-300" /> Issued: {issued}
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500">{history.length} issue records</p>
+                    <div className="space-y-4 my-4">
+                      <div className="flex items-center justify-between text-sm font-medium">
+                        <span className="text-slate-600 flex items-center gap-1"><Box size={14} className="text-blue-600"/> {available} / {total} Available</span>
+                        <span className="text-slate-600 flex items-center gap-1"><MapPin size={14} className="text-accent-pink"/> {item.location || 'Lab'}</span>
                       </div>
-
-                      <div className="flex flex-wrap lg:justify-end items-start gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openIssue(item)}
-                          disabled={available === 0}
-                          className={`btn !w-auto !px-3 !py-2 ${available > 0 ? 'btn-secondary' : 'btn-ghost !opacity-45'}`}
-                        >
-                          Issue
-                        </button>
-                        {isAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => openEdit(item._id)}
-                            className="btn btn-ghost !w-auto !px-3 !py-2"
-                            title="Adjust stock"
-                          >
-                            <Pencil size={13} /> Adjust
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExpandedItemId((prev) => (prev === item._id ? '' : item._id))
-                          }
-                          className="btn btn-ghost !w-auto !px-2.5 !py-2"
-                          title="Toggle details"
-                        >
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${ratio}%` }}
+                          className={`h-full ${health.id === 'critical' ? 'bg-accent-pink' : health.id === 'low' ? 'bg-amber-400' : 'bg-accent-emerald'}`}
+                        />
                       </div>
                     </div>
 
                     <AnimatePresence>
                       {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 8 }}
-                          className="mt-4 border-t border-gray-800/80 pt-4"
-                        >
-                          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.95fr)] gap-5">
-                            <div>
-                              <p className="text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold">
-                                Recent issuance log
-                              </p>
-                              <div className="mt-2 divide-y divide-gray-800/60 border border-gray-800/70 rounded-xl overflow-hidden">
-                                {history.length === 0 ? (
-                                  <p className="px-3 py-3 text-sm text-gray-500">No issue records yet.</p>
-                                ) : (
-                                  history.slice(0, 7).map((entry, historyIdx) => (
-                                    <div
-                                      key={`${entry.issueDate || historyIdx}-${historyIdx}`}
-                                      className="px-3 py-2.5 text-sm"
-                                    >
-                                      <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <p className="text-gray-200 inline-flex items-center gap-1.5">
-                                          <UserRound size={13} className="text-cyan-300" />
-                                          {entry.user?.name || 'Member'}
-                                          <span className="text-gray-500 text-xs">
-                                            @{entry.user?.collegeId || 'N/A'}
-                                          </span>
-                                        </p>
-                                        <span className="text-[11px] text-gray-500">
-                                          {toDateLabel(entry.issueDate)}
-                                        </span>
-                                      </div>
-                                      <p className="text-xs text-gray-400 mt-1">
-                                        Qty {entry.quantity || 0} for project {entry.project || 'N/A'}
-                                      </p>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            </div>
-
-                            {isAdmin && isEditing && (
-                              <form
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                  submitAdjust(item._id);
-                                }}
-                                className="space-y-3 border border-gray-800/75 rounded-xl p-3"
-                              >
-                                <p className="text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold">
-                                  Stock adjustment
-                                </p>
-
-                                <div className="flex gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => setAdjustMode('subtract')}
-                                    className={`btn !w-auto !px-3 !py-2 ${
-                                      adjustMode === 'subtract' ? 'btn-danger' : 'btn-ghost'
-                                    }`}
-                                  >
-                                    <Minus size={12} /> Remove
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setAdjustMode('add')}
-                                    className={`btn !w-auto !px-3 !py-2 ${
-                                      adjustMode === 'add' ? 'btn-primary' : 'btn-ghost'
-                                    }`}
-                                  >
-                                    <Plus size={12} /> Add
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => setAdjustQty((q) => Math.max(1, Number(q) - 1))}
-                                    className="btn btn-ghost !w-auto !px-2.5 !py-2"
-                                  >
-                                    <Minus size={12} />
-                                  </button>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    value={adjustQty}
-                                    onChange={(e) => setAdjustQty(Math.max(1, Number(e.target.value) || 1))}
-                                    className="ui-input !text-center"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setAdjustQty((q) => Number(q) + 1)}
-                                    className="btn btn-ghost !w-auto !px-2.5 !py-2"
-                                  >
-                                    <Plus size={12} />
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    type="submit"
-                                    disabled={adjusting}
-                                    className="btn btn-primary !w-auto !px-3 !py-2"
-                                  >
-                                    {adjusting ? <Loader2 size={14} className="animate-spin" /> : <Check size={13} />}
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={closeEdit}
-                                    className="btn btn-ghost !w-auto !px-3 !py-2"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="pt-4 border-t border-slate-200">
+                          <div className="flex items-center justify-between gap-2">
+                            <button onClick={() => openIssue(item)} disabled={available === 0} className={`btn flex-1 ${available > 0 ? 'px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2' : 'px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 opacity-50'}`}>Issue Item</button>
+                            {isAdmin && (
+                              <button onClick={() => openEdit(item._id)} className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 flex-1">Adjust Stock</button>
                             )}
                           </div>
+                          
+                          {/* Stock Edit Inline */}
+                          {editingItemId === item._id && isAdmin && (
+                            <form onSubmit={(e) => { e.preventDefault(); submitAdjust(item._id); }} className="mt-4 p-3 bg-slate-100 rounded-xl space-y-3">
+                              <div className="flex gap-2">
+                                <button type="button" onClick={() => setAdjustMode('subtract')} className={`btn flex-1 ${adjustMode === 'subtract' ? 'bg-accent-pink text-slate-900' : 'px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2'}`}><Minus size={14}/></button>
+                                <button type="button" onClick={() => setAdjustMode('add')} className={`btn flex-1 ${adjustMode === 'add' ? 'bg-accent-blue text-slate-900' : 'px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2'}`}><Plus size={14}/></button>
+                              </div>
+                              <input type="number" min="1" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} className="input-field text-center" />
+                              <div className="flex gap-2">
+                                <button type="button" onClick={closeEdit} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 flex-1">Cancel</button>
+                                <button type="submit" disabled={adjusting} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 flex-1">Save</button>
+                              </div>
+                            </form>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </motion.article>
-                );
-              })}
-            </div>
+                  </div>
+                </motion.article>
+              );
+            })}
           </div>
         )}
       </section>
 
-      <AnimatePresence>
-        {selectedItem && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedItem(null)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.97 }}
-              className="relative w-full max-w-xl border border-gray-800/80 rounded-2xl bg-[#080c12] p-5 md:p-6"
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedItem(null)}
-                className="absolute right-3 top-3 btn btn-ghost !w-auto !px-2 !py-1.5"
-              >
-                <X size={14} />
-              </button>
-
-              <h3 className="text-xl font-semibold text-white">Issue {selectedItem.itemName}</h3>
-              <p className="text-xs text-gray-500 mt-1">Available quantity: {selectedItem.availableQuantity}</p>
-
-              <form onSubmit={handleIssueSubmit} className="mt-5 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="ui-field">
-                    <label className="ui-label">Quantity</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={Math.max(Number(selectedItem.availableQuantity || 1), 1)}
-                      required
-                      value={issueData.quantity}
-                      onChange={(e) =>
-                        setIssueData((prev) => ({
-                          ...prev,
-                          quantity: Math.max(
-                            1,
-                            Math.min(Number(e.target.value) || 1, Number(selectedItem.availableQuantity || 1))
-                          ),
-                        }))
-                      }
-                      className="ui-input"
-                    />
-                  </div>
-
-                  <div className="ui-field">
-                    <label className="ui-label">Project</label>
-                    <input
-                      type="text"
-                      required
-                      value={issueData.project}
-                      onChange={(e) =>
-                        setIssueData((prev) => ({ ...prev, project: e.target.value }))
-                      }
-                      placeholder="Project name / ID"
-                      className="ui-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200 inline-flex items-start gap-2">
-                  <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                  Ensure issued items are tracked and returned after work completion.
-                </div>
-
-                <button disabled={isIssuing} className="btn btn-primary w-full">
-                  {isIssuing ? <Loader2 size={15} className="animate-spin" /> : <AlertCircle size={14} />}
-                  Confirm Issue
-                </button>
-              </form>
-            </motion.div>
+      <Modal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={`Issue ${selectedItem?.itemName}`}>
+        <form onSubmit={handleIssueSubmit} className="space-y-4">
+          <p className="text-sm text-slate-600 mb-4">You are issuing items from the lab inventory. They must be tracked.</p>
+          
+          <div>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1 block">Quantity (Max: {selectedItem?.availableQuantity})</label>
+            <input type="number" min="1" max={selectedItem?.availableQuantity} value={issueData.quantity} onChange={(e) => setIssueData(p => ({...p, quantity: e.target.value}))} required className="input-field" />
           </div>
-        )}
-      </AnimatePresence>
+          <div>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1 block">Project / Purpose</label>
+            <input type="text" value={issueData.project} onChange={(e) => setIssueData(p => ({...p, project: e.target.value}))} required className="input-field" placeholder="e.g. Quadcopter build" />
+          </div>
+          
+          <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
+            <button type="button" onClick={() => setSelectedItem(null)} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">Cancel</button>
+            <button type="submit" disabled={isIssuing} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">Confirm Issue</button>
+          </div>
+        </form>
+      </Modal>
+
+      <SideDrawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Add New Inventory Part">
+        <form onSubmit={handleAddItemSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1 block">Part Name</label>
+            <input name="itemName" required className="input-field" placeholder="e.g. Arduino Uno" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1 block">Category</label>
+            <input name="category" required className="input-field" placeholder="e.g. Microcontrollers" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1 block">Location</label>
+            <input name="location" required className="input-field" placeholder="e.g. Shelf A2" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1 block">Initial Stock Quantity</label>
+            <input name="quantity" type="number" min="1" required className="input-field" defaultValue="1" />
+          </div>
+          
+          <div className="pt-4 border-t border-slate-200 flex justify-end gap-3 mt-8">
+            <button type="button" onClick={() => setIsAddDrawerOpen(false)} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">Cancel</button>
+            <button type="submit" disabled={addLoading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">Save Part</button>
+          </div>
+        </form>
+      </SideDrawer>
     </div>
   );
 }
 
-function Metric({ label, value, hint, tone = 'slate' }) {
-  const toneClass =
-    tone === 'emerald'
-      ? 'border-emerald-500/30'
-      : tone === 'blue'
-      ? 'border-blue-500/30'
-      : tone === 'amber'
-      ? 'border-amber-500/30'
-      : 'border-gray-700/70';
-
+function Metric({ label, value, tone = 'slate' }) {
+  const toneClass = tone === 'emerald' ? 'text-emerald-600' : tone === 'blue' ? 'text-blue-600' : tone === 'amber' ? 'text-amber-400' : 'text-slate-900';
   return (
-    <article className={`px-3 py-3 border-y ${toneClass}`}>
-      <p className="text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold">{label}</p>
-      <p className="mt-1 text-2xl font-black text-white">{value}</p>
-      <p className="mt-1 text-xs text-gray-500">{hint}</p>
-    </article>
+    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 rounded-2xl border-t-2 border-slate-200" style={{ borderTopColor: tone === 'slate' ? '' : `var(--accent-${tone})` }}>
+      <p className="text-[10px] uppercase tracking-widest font-bold text-slate-600">{label}</p>
+      <p className={`text-3xl font-black mt-2 ${toneClass}`}>{value}</p>
+    </div>
   );
 }

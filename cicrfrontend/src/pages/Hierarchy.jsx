@@ -170,7 +170,7 @@ export default function Hierarchy() {
   };
 
   return (
-    <div className="ui-page pb-16 space-y-8 page-motion-b">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 pb-16 space-y-8 page-motion-b">
       <header className="section-motion section-motion-delay-1">
         <PageHeader
           eyebrow="Team Operations"
@@ -187,14 +187,14 @@ export default function Hierarchy() {
       </header>
 
       {!canAssign && (
-        <div className="border border-amber-500/30 rounded-2xl px-4 py-3 text-sm text-amber-200 section-motion section-motion-delay-1">
+        <div className="border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700 section-motion section-motion-delay-1">
           You can view assigned tasks, but creating tasks is limited to seniors (2nd year+) and Admin/Head.
         </div>
       )}
 
       <section className="grid grid-cols-1 xl:grid-cols-12 gap-6 section-motion section-motion-delay-2">
-        <article className="xl:col-span-4 border border-gray-800 rounded-[1.8rem] p-5 md:p-6 space-y-4">
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
+        <article className="xl:col-span-4 border border-slate-200 rounded-[1.8rem] p-5 md:p-6 space-y-4">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
             <Plus size={14} className="text-blue-400" /> Assign Task
           </h2>
 
@@ -203,7 +203,7 @@ export default function Hierarchy() {
               value={form.title}
               onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
               placeholder="Task title"
-              className="w-full border border-gray-800 rounded-xl px-3 py-2.5 bg-[#0b0e13]/65 text-sm text-white outline-none focus:border-blue-500"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 bg-white shadow-sm border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500"
               required
               minLength={4}
             />
@@ -212,13 +212,13 @@ export default function Hierarchy() {
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Expected outcome and context"
               rows={4}
-              className="w-full border border-gray-800 rounded-xl px-3 py-2.5 bg-[#0b0e13]/65 text-sm text-white outline-none focus:border-blue-500 resize-none"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 bg-white shadow-sm border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500 resize-none"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <select
                 value={form.category}
                 onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                className="border border-gray-800 rounded-xl px-3 py-2.5 bg-[#0b0e13]/65 text-sm text-white outline-none focus:border-blue-500"
+                className="border border-slate-200 rounded-xl px-3 py-2.5 bg-white shadow-sm border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500"
               >
                 {TASK_CATEGORIES.map((item) => (
                   <option key={item} value={item}>
@@ -229,7 +229,7 @@ export default function Hierarchy() {
               <select
                 value={form.priority}
                 onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
-                className="border border-gray-800 rounded-xl px-3 py-2.5 bg-[#0b0e13]/65 text-sm text-white outline-none focus:border-blue-500"
+                className="border border-slate-200 rounded-xl px-3 py-2.5 bg-white shadow-sm border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500"
               >
                 {TASK_PRIORITIES.map((item) => (
                   <option key={item} value={item}>
@@ -241,7 +241,7 @@ export default function Hierarchy() {
             <select
               value={form.assignedTo}
               onChange={(e) => setForm((prev) => ({ ...prev, assignedTo: e.target.value }))}
-              className="w-full border border-gray-800 rounded-xl px-3 py-2.5 bg-[#0b0e13]/65 text-sm text-white outline-none focus:border-blue-500"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 bg-white shadow-sm border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500"
             >
               <option value="">Select assignee</option>
               {eligibleMembers.map((member) => (
@@ -254,13 +254,13 @@ export default function Hierarchy() {
               type="date"
               value={form.dueDate}
               onChange={(e) => setForm((prev) => ({ ...prev, dueDate: e.target.value }))}
-              className="w-full border border-gray-800 rounded-xl px-3 py-2.5 bg-[#0b0e13]/65 text-sm text-white outline-none focus:border-blue-500"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 bg-white shadow-sm border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500"
             />
 
             <button
               type="submit"
               disabled={busy || !canAssign}
-              className="w-full inline-flex items-center justify-center gap-2 border border-blue-500/40 text-blue-100 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-500/10 disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 border border-blue-300 text-blue-700 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-50 disabled:opacity-60"
             >
               {busy ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
               Create Task
@@ -268,10 +268,10 @@ export default function Hierarchy() {
           </form>
         </article>
 
-        <article className="xl:col-span-8 border border-gray-800 rounded-[1.8rem] p-5 md:p-6 space-y-4">
+        <article className="xl:col-span-8 border border-slate-200 rounded-[1.8rem] p-5 md:p-6 space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-gray-200 inline-flex items-center gap-2">
-              <Users size={14} className="text-cyan-300" /> Active Task Board
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 inline-flex items-center gap-2">
+              <Users size={14} className="text-cyan-600" /> Active Task Board
             </h2>
             <div className="flex flex-wrap gap-2">
               <select
@@ -281,7 +281,7 @@ export default function Hierarchy() {
                   setScope(nextScope);
                   loadData(nextScope);
                 }}
-                className="border border-gray-800 rounded-xl px-3 py-2 bg-[#0b0e13]/65 text-xs text-gray-300"
+                className="border border-slate-200 rounded-xl px-3 py-2 bg-white shadow-sm border border-slate-200 text-xs text-slate-700"
               >
                 <option value="assigned">Assigned To Me</option>
                 <option value="created">Assigned By Me</option>
@@ -290,7 +290,7 @@ export default function Hierarchy() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-800 rounded-xl px-3 py-2 bg-[#0b0e13]/65 text-xs text-gray-300"
+                className="border border-slate-200 rounded-xl px-3 py-2 bg-white shadow-sm border border-slate-200 text-xs text-slate-700"
               >
                 <option value="All">All Statuses</option>
                 {TASK_STATUSES.map((item) => (
@@ -303,7 +303,7 @@ export default function Hierarchy() {
           </div>
 
           {loading ? (
-            <div className="h-44 flex items-center justify-center text-gray-500">
+            <div className="h-44 flex items-center justify-center text-slate-500">
               <Loader2 size={20} className="animate-spin mr-2" /> Loading tasks...
             </div>
           ) : (
@@ -317,42 +317,42 @@ export default function Hierarchy() {
                     key={task._id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border border-gray-800 rounded-xl p-4"
+                    className="border border-slate-200 rounded-xl p-4"
                   >
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div>
-                        <h3 className="text-base font-bold text-white">{task.title}</h3>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <h3 className="text-base font-bold text-slate-900">{task.title}</h3>
+                        <p className="text-xs text-slate-500 mt-1">
                           {task.category} • {task.priority} • Due {fmtDate(task.dueDate)}
                         </p>
                       </div>
-                      <span className="text-[10px] uppercase tracking-widest border border-gray-700 rounded-lg px-2 py-1 text-gray-300 self-start">
+                      <span className="text-[10px] uppercase tracking-widest border border-slate-300 rounded-lg px-2 py-1 text-slate-700 self-start">
                         {prettyStatus(task.status)}
                       </span>
                     </div>
 
                     {task.description ? (
-                      <p className="mt-3 text-sm text-gray-300 leading-relaxed">{task.description}</p>
+                      <p className="mt-3 text-sm text-slate-700 leading-relaxed">{task.description}</p>
                     ) : null}
 
-                    <div className="mt-3 text-[11px] text-gray-400 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="mt-3 text-[11px] text-slate-600 grid grid-cols-1 md:grid-cols-2 gap-2">
                       <p className="inline-flex items-center gap-1.5">
                         <ShieldCheck size={12} className="text-blue-400" />
                         Assigned by {task.assignedBy?.name || 'Unknown'}
                       </p>
                       <p className="inline-flex items-center gap-1.5">
-                        <FolderKanban size={12} className="text-cyan-300" />
+                        <FolderKanban size={12} className="text-cyan-600" />
                         Assigned to {task.assignedTo?.name || 'Unknown'}
                       </p>
                     </div>
 
                     {latestNote?.note ? (
-                      <p className="mt-3 text-xs text-amber-100 border border-amber-500/25 rounded-lg px-2.5 py-1.5">
+                      <p className="mt-3 text-xs text-amber-800 border border-amber-200 rounded-lg px-2.5 py-1.5">
                         Latest update: {latestNote.note}
                       </p>
                     ) : null}
 
-                    <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-2">
+                    <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap gap-2">
                       {TASK_STATUSES.map((status) => (
                         <button
                           key={status}
@@ -360,8 +360,8 @@ export default function Hierarchy() {
                           onClick={() => handleStatusChange(task, status)}
                           className={`text-[10px] px-2.5 py-1.5 rounded-lg border uppercase tracking-widest ${
                             task.status === status
-                              ? 'border-blue-500/45 text-blue-200'
-                              : 'border-gray-700 text-gray-400 hover:text-gray-200'
+                              ? 'border-blue-300 text-blue-600'
+                              : 'border-slate-300 text-slate-600 hover:text-slate-700'
                           }`}
                         >
                           {status === 'Completed' ? <CheckCircle2 size={11} className="inline mr-1" /> : null}
@@ -372,7 +372,7 @@ export default function Hierarchy() {
                         <button
                           type="button"
                           onClick={() => handleDelete(task)}
-                          className="text-[10px] px-2.5 py-1.5 rounded-lg border border-rose-500/30 text-rose-200 uppercase tracking-widest inline-flex items-center gap-1"
+                          className="text-[10px] px-2.5 py-1.5 rounded-lg border border-red-200 text-red-600 uppercase tracking-widest inline-flex items-center gap-1"
                         >
                           <Trash2 size={11} />
                           Delete
@@ -383,7 +383,7 @@ export default function Hierarchy() {
                 );
               })}
               {visibleTasks.length === 0 && (
-                <div className="text-center py-14 border border-dashed border-gray-800 rounded-xl text-gray-500">
+                <div className="text-center py-14 border border-dashed border-slate-200 rounded-xl text-slate-500">
                   <Clock3 size={28} className="mx-auto mb-2 text-gray-600" />
                   No hierarchy tasks available in this view.
                 </div>
@@ -398,9 +398,9 @@ export default function Hierarchy() {
 
 function Stat({ label, value }) {
   return (
-    <div className="border border-gray-800 rounded-xl px-4 py-3 min-w-[140px]">
-      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">{label}</p>
-      <p className="text-xl font-black text-white mt-1">{value}</p>
+    <div className="border border-slate-200 rounded-xl px-4 py-3 min-w-[140px]">
+      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black">{label}</p>
+      <p className="text-xl font-black text-slate-900 mt-1">{value}</p>
     </div>
   );
 }

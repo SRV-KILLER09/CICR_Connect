@@ -5,6 +5,7 @@ const EngagementConfig = require('../models/EngagementConfig');
 const User = require('../models/User');
 const { createNotifications } = require('../utils/notificationService');
 const { logAudit } = require('../utils/auditLogger');
+const { isAdminOrHead, parseYear } = require('../utils/policyEngine');
 
 const ADMIN_ROLES = new Set(['admin', 'head']);
 const AUDIENCES = ['AllMembers', 'FirstYear', 'SecondYear', 'FirstAndSecond'];
@@ -36,22 +37,17 @@ const normalizeEnum = (value, allowed, fallback = '') => {
   return match || fallback;
 };
 
-const isAdminOrHead = (user) => ADMIN_ROLES.has(String(user?.role || '').toLowerCase());
 
-const getUserYear = (user) => {
-  const n = Number(user?.year);
-  return Number.isFinite(n) ? n : null;
-};
 
 const audienceForMember = (user) => {
-  const year = getUserYear(user);
+  const year = parseYear(user?.year);
   if (year === 1) return ['AllMembers', 'FirstYear', 'FirstAndSecond'];
   if (year === 2) return ['AllMembers', 'SecondYear', 'FirstAndSecond'];
   return ['AllMembers'];
 };
 
 const isEligibleAudience = (user, audience = 'AllMembers') => {
-  if (isAdminOrHead(user)) return true;
+  if (isAdminOrHead(user.role)) return true;
   return audienceForMember(user).includes(audience);
 };
 
@@ -73,8 +69,8 @@ const getConfig = async () => {
 };
 
 const canAccessByConfig = (user, config) => {
-  if (isAdminOrHead(user)) return { allowed: true, reason: '' };
-  const year = getUserYear(user);
+  if (isAdminOrHead(user.role)) return { allowed: true, reason: '' };
+  const year = parseYear(user?.year);
   if (year === 1 && !config.allowFirstYear) {
     return { allowed: false, reason: 'Learning Hub is currently disabled for first-year members.' };
   }
@@ -225,7 +221,7 @@ const enrichTracksWithProgress = (tracks, submissions) => {
 const listTracks = async (req, res) => {
   try {
     const config = await getConfig();
-    if (!config.learningHubEnabled && !isAdminOrHead(req.user)) {
+    if (!config.learningHubEnabled && !isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Learning Hub is disabled by admin settings.' });
     }
 
@@ -278,7 +274,7 @@ const listTracks = async (req, res) => {
 const getTrackById = async (req, res) => {
   try {
     const config = await getConfig();
-    if (!config.learningHubEnabled && !isAdminOrHead(req.user)) {
+    if (!config.learningHubEnabled && !isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Learning Hub is disabled by admin settings.' });
     }
 
@@ -287,7 +283,7 @@ const getTrackById = async (req, res) => {
       return res.status(404).json({ message: 'Track not found.' });
     }
 
-    const privileged = isAdminOrHead(req.user);
+    const privileged = isAdminOrHead(req.user.role);
     if (!privileged) {
       if (track.isArchived || !track.isPublished) {
         return res.status(403).json({ message: 'Track is not available for members.' });
@@ -311,7 +307,7 @@ const getTrackById = async (req, res) => {
 
 const createTrack = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Only Admin/Head can create tracks.' });
     }
 
@@ -374,7 +370,7 @@ const createTrack = async (req, res) => {
 
 const updateTrack = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Only Admin/Head can update tracks.' });
     }
 
@@ -470,7 +466,7 @@ const updateTrack = async (req, res) => {
 
 const setTrackPublish = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Only Admin/Head can manage publish state.' });
     }
 
@@ -504,7 +500,7 @@ const setTrackPublish = async (req, res) => {
 
 const setTrackArchive = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Only Admin/Head can manage archive state.' });
     }
 
@@ -552,7 +548,7 @@ const submitTask = async (req, res) => {
       return res.status(403).json({ message: configGate.reason });
     }
 
-    if (!config.allowSubmissions && !isAdminOrHead(req.user)) {
+    if (!config.allowSubmissions && !isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Task submissions are currently paused by admins.' });
     }
 
@@ -561,7 +557,7 @@ const submitTask = async (req, res) => {
       return res.status(404).json({ message: 'Track not found.' });
     }
 
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       if (track.isArchived || !track.isPublished) {
         return res.status(403).json({ message: 'Track is not currently accepting submissions.' });
       }
@@ -692,7 +688,7 @@ const listMySubmissions = async (req, res) => {
 
 const listAllSubmissions = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Only Admin/Head can view all submissions.' });
     }
 
@@ -722,7 +718,7 @@ const listAllSubmissions = async (req, res) => {
 
 const reviewSubmission = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
+    if (!isAdminOrHead(req.user.role)) {
       return res.status(403).json({ message: 'Only Admin/Head can review submissions.' });
     }
 

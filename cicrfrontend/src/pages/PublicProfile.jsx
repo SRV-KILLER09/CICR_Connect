@@ -68,8 +68,8 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#06090f] text-white flex items-center justify-center">
-        <div className="inline-flex items-center gap-2 text-sm text-cyan-200">
+      <div className="min-h-screen bg-[#06090f] text-slate-900 flex items-center justify-center">
+        <div className="inline-flex items-center gap-2 text-sm text-cyan-700">
           <Loader2 className="animate-spin" size={18} />
           Loading profile experience...
         </div>
@@ -79,12 +79,12 @@ export default function PublicProfile() {
 
   if (!data?.profile) {
     return (
-      <div className="min-h-screen bg-[#06090f] text-white p-6 flex items-center justify-center">
-        <div className="w-full max-w-xl border border-slate-700 rounded-3xl p-8 text-center bg-[#0b0f16]/90">
-          <p className="text-rose-300 font-semibold">Profile not found for college ID: {collegeId}</p>
+      <div className="min-h-screen bg-[#06090f] text-slate-900 p-6 flex items-center justify-center">
+        <div className="w-full max-w-xl border border-slate-700 rounded-3xl p-8 text-center bg-white shadow-sm border border-slate-200">
+          <p className="text-red-600 font-semibold">Profile not found for college ID: {collegeId}</p>
           <Link
             to="/login"
-            className="inline-flex items-center gap-2 mt-5 rounded-xl border border-cyan-500/35 px-4 py-2 text-cyan-200 hover:bg-cyan-500/10"
+            className="inline-flex items-center gap-2 mt-5 rounded-xl border border-blue-200 px-4 py-2 text-cyan-700 hover:bg-blue-50"
           >
             Go to sign in <ExternalLink size={14} />
           </Link>
@@ -150,7 +150,7 @@ export default function PublicProfile() {
   const publicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${publicQrPayload}`;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#06090f] text-white">
+    <div className="relative min-h-screen overflow-hidden bg-[#06090f] text-slate-900">
       <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -top-24 -left-16 h-[26rem] w-[26rem] rounded-full bg-cyan-500/12 blur-[120px]"
@@ -172,7 +172,7 @@ export default function PublicProfile() {
           transition={{ duration: 0.45 }}
           className="pb-10 border-b border-slate-700/55"
         >
-          <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-200 font-black">CICR Public Profile</p>
+          <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-700 font-black">CICR Public Profile</p>
 
           <div className="mt-4 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0 flex-1">
@@ -181,7 +181,7 @@ export default function PublicProfile() {
                   initial={{ rotate: -8, scale: 0.9 }}
                   animate={{ rotate: [0, -4, 0], scale: [1, 1.04, 1] }}
                   transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                  className="h-16 w-16 rounded-2xl border border-cyan-400/45 bg-cyan-400/10 text-cyan-100 flex items-center justify-center text-2xl font-black shrink-0 overflow-hidden"
+                  className="h-16 w-16 rounded-2xl border border-blue-200 bg-cyan-400/10 text-blue-700 flex items-center justify-center text-2xl font-black shrink-0 overflow-hidden"
                 >
                   {profile.avatarUrl && !avatarFailed ? (
                     <img
@@ -198,7 +198,7 @@ export default function PublicProfile() {
                   <h1 className="text-3xl md:text-5xl font-black tracking-tight break-words leading-[1.05] bg-gradient-to-r from-white via-cyan-100 to-slate-300 text-transparent bg-clip-text">
                     {profile.name}
                   </h1>
-                  <p className="mt-2 text-sm md:text-base text-slate-300">
+                  <p className="mt-2 text-sm md:text-base text-slate-700">
                     {isAlumni
                       ? `${alumniProfile.currentDesignation || 'Alumni Member'}${
                           alumniProfile.currentOrganization ? ` • ${alumniProfile.currentOrganization}` : ''
@@ -208,29 +208,29 @@ export default function PublicProfile() {
                         }`}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/45 px-2.5 py-1 text-slate-200">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/45 px-2.5 py-1 text-slate-700">
                       <IdCard size={12} /> {profile.collegeId}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/35 px-2.5 py-1 text-emerald-200">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 px-2.5 py-1 text-emerald-700">
                       <BadgeCheck size={12} /> {profile.role}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/35 px-2.5 py-1 text-amber-200">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 px-2.5 py-1 text-amber-700">
                       <CalendarDays size={12} /> Joined {fmtDate(profile.joinedAt)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <p className="mt-5 max-w-4xl text-sm md:text-base text-slate-300 leading-relaxed">
+              <p className="mt-5 max-w-4xl text-sm md:text-base text-slate-700 leading-relaxed">
                 {profile.bio || 'This member has not added a public professional summary yet.'}
               </p>
             </div>
 
             <div className="w-full lg:w-[20rem]">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-black">Profile Completion</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-slate-600 font-black">Profile Completion</div>
               <div className="mt-2 flex items-end justify-between gap-3">
-                <p className="text-4xl font-black text-cyan-100">{completionScore}%</p>
-                <p className="text-xs text-slate-400">Visibility & detail score</p>
+                <p className="text-4xl font-black text-blue-700">{completionScore}%</p>
+                <p className="text-xs text-slate-600">Visibility & detail score</p>
               </div>
               <div className="mt-3 h-2 rounded-full bg-slate-800/90 overflow-hidden">
                 <motion.div
@@ -253,7 +253,7 @@ export default function PublicProfile() {
               <motion.article
                 key={stat.label}
                 variants={sectionVariants}
-                className="border-l border-cyan-500/30 pl-3"
+                className="border-l border-blue-200 pl-3"
               >
                 <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-black">{stat.label}</p>
                 <p className="mt-1 text-2xl md:text-3xl font-black text-slate-100">{stat.value}</p>
@@ -271,7 +271,7 @@ export default function PublicProfile() {
           className="py-9 border-b border-slate-700/55"
         >
           <SectionTitle icon={IdCard} title="Digital Identity Card" />
-          <div className="relative mt-4 rounded-3xl border border-cyan-500/28 bg-gradient-to-br from-[#071321] via-[#0a2340] to-[#162f55] p-5 md:p-7 overflow-hidden">
+          <div className="relative mt-4 rounded-3xl border border-blue-200 bg-gradient-to-br from-[#071321] via-[#0a2340] to-[#162f55] p-5 md:p-7 overflow-hidden">
             <div className="pointer-events-none absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_18%_18%,rgba(34,211,238,0.28)_0,transparent_42%),radial-gradient(circle_at_85%_72%,rgba(59,130,246,0.24)_0,transparent_38%),radial-gradient(circle_at_56%_8%,rgba(129,140,248,0.2)_0,transparent_32%)]" />
             <div className="pointer-events-none absolute inset-0 opacity-[0.07] bg-[linear-gradient(to_right,rgba(148,163,184,0.55)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.55)_1px,transparent_1px)] bg-[size:22px_22px]" />
             <div className="pointer-events-none absolute -top-16 -left-10 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl" />
@@ -280,14 +280,14 @@ export default function PublicProfile() {
               <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 items-stretch">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-300 font-black">CICR Connect</p>
-                    <span className="text-xs font-black uppercase tracking-[0.15em] px-3 py-1 rounded-xl border border-cyan-400/40 bg-cyan-400/10 text-cyan-100">Status Active Member</span>
+                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-600 font-black">CICR Connect</p>
+                    <span className="text-xs font-black uppercase tracking-[0.15em] px-3 py-1 rounded-xl border border-blue-200 bg-cyan-400/10 text-blue-700">Status Active Member</span>
                   </div>
-                  <h3 className="text-5xl max-sm:text-4xl font-black mt-3 text-white tracking-tight">{idCard.name || profile.name || 'Member'}</h3>
-                  <p className="mt-2 text-slate-300 max-w-xl">Digital identity card for CICR Connect member access and verification.</p>
+                  <h3 className="text-5xl max-sm:text-4xl font-black mt-3 text-slate-900 tracking-tight">{idCard.name || profile.name || 'Member'}</h3>
+                  <p className="mt-2 text-slate-700 max-w-xl">Digital identity card for CICR Connect member access and verification.</p>
 
                   <div className="mt-5 grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div className="md:col-span-3 rounded-3xl border border-cyan-500/35 bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 min-h-[140px] flex items-center justify-center text-6xl font-black text-cyan-100 overflow-hidden">
+                    <div className="md:col-span-3 rounded-3xl border border-blue-200 bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 min-h-[140px] flex items-center justify-center text-6xl font-black text-blue-700 overflow-hidden">
                       {cardHasAvatar ? (
                         <img
                           src={cardAvatarUrl}
@@ -300,27 +300,27 @@ export default function PublicProfile() {
                       )}
                     </div>
                     <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-400">Year</p><p className="text-2xl font-black mt-1">{idCard.year || profile.year || 'N/A'}</p></div>
-                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-400">Batch</p><p className="text-2xl font-black mt-1">{idCard.batch || profile.batch || 'N/A'}</p></div>
-                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-400">Role</p><p className="text-2xl font-black mt-1">{idCard.role || profile.role || 'N/A'}</p></div>
-                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-400">Branch</p><p className="text-2xl font-black mt-1">{(idCard.branch || profile.branch || 'N/A').toUpperCase()}</p></div>
+                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Year</p><p className="text-2xl font-black mt-1">{idCard.year || profile.year || 'N/A'}</p></div>
+                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Batch</p><p className="text-2xl font-black mt-1">{idCard.batch || profile.batch || 'N/A'}</p></div>
+                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Role</p><p className="text-2xl font-black mt-1">{idCard.role || profile.role || 'N/A'}</p></div>
+                      <div className="rounded-2xl border border-slate-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Branch</p><p className="text-2xl font-black mt-1">{(idCard.branch || profile.branch || 'N/A').toUpperCase()}</p></div>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-cyan-500/25 bg-black/15 px-4 py-3 text-sm text-slate-200 flex flex-wrap gap-x-5 gap-y-1">
+                  <div className="mt-4 rounded-2xl border border-blue-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 flex flex-wrap gap-x-5 gap-y-1">
                     <span>College ID: {idCard.collegeId || profile.collegeId || 'N/A'}</span>
                     <span>Email ID: {idCard.email || 'N/A'}</span>
                   </div>
 
                 </div>
 
-                <div className="w-full lg:w-[18rem] xl:w-[19.5rem] rounded-3xl border border-cyan-500/25 bg-white/[0.06] p-4 shrink-0">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-200 font-black">Scan To Verify</p>
-                  <img src={publicQrUrl} alt="Public ID QR" className="mt-3 w-full max-w-[260px] rounded-2xl bg-white p-2 border border-cyan-500/30 mx-auto" />
-                  <div className="mt-4 text-xs text-slate-300">
+                <div className="w-full lg:w-[18rem] xl:w-[19.5rem] rounded-3xl border border-blue-200 bg-white/[0.06] p-4 shrink-0">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-700 font-black">Scan To Verify</p>
+                  <img src={publicQrUrl} alt="Public ID QR" className="mt-3 w-full max-w-[260px] rounded-2xl bg-white p-2 border border-blue-200 mx-auto" />
+                  <div className="mt-4 text-xs text-slate-700">
                     <div className="flex items-center justify-between"><span>CICR Member Card</span><span>{idCard.role || profile.role || 'Member'}</span></div>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-2"><div className="h-full w-full bg-gradient-to-r from-cyan-400 to-blue-300" /></div>
-                    <p className="mt-2 break-all text-slate-400">{typeof window !== 'undefined' ? window.location.href : ''}</p>
+                    <div className="h-2 rounded-full bg-slate-200 overflow-hidden mt-2"><div className="h-full w-full bg-gradient-to-r from-cyan-400 to-blue-300" /></div>
+                    <p className="mt-2 break-all text-slate-600">{typeof window !== 'undefined' ? window.location.href : ''}</p>
                   </div>
                 </div>
               </div>
@@ -328,10 +328,10 @@ export default function PublicProfile() {
 
             {!showIdCard && (
               <div className="absolute inset-0 flex items-center justify-center p-6">
-                <div className="rounded-2xl border border-rose-500/35 bg-[#2a1130]/85 px-6 py-5 text-center max-w-md">
-                  <BadgeCheck size={22} className="mx-auto text-rose-300" />
-                  <p className="mt-3 text-4xl font-black text-white tracking-tight">DigiCard Unavailable</p>
-                  <p className="mt-2 text-slate-200">This member's ID card is currently deactivated by an administrator and cannot be used for verification.</p>
+                <div className="rounded-2xl border border-red-200 bg-white shadow-sm border border-slate-200 px-6 py-5 text-center max-w-md">
+                  <BadgeCheck size={22} className="mx-auto text-red-600" />
+                  <p className="mt-3 text-4xl font-black text-slate-900 tracking-tight">DigiCard Unavailable</p>
+                  <p className="mt-2 text-slate-700">This member's ID card is currently deactivated by an administrator and cannot be used for verification.</p>
                 </div>
               </div>
             )}
@@ -348,7 +348,7 @@ export default function PublicProfile() {
         >
           <SectionTitle icon={User} title="Identity and Presence" />
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-3 text-sm">
-            <IdentityLine icon={IdCard} text={profile.collegeId || 'College ID unavailable'} accent="text-cyan-300" />
+            <IdentityLine icon={IdCard} text={profile.collegeId || 'College ID unavailable'} accent="text-cyan-600" />
             <IdentityLine
               icon={GraduationCap}
               text={
@@ -358,7 +358,7 @@ export default function PublicProfile() {
                   ? `Academic Year ${profile.year}`
                   : 'Academic year unavailable'
               }
-              accent="text-amber-300"
+              accent="text-amber-600"
             />
             <IdentityLine
               icon={FolderKanban}
@@ -370,7 +370,7 @@ export default function PublicProfile() {
                 <IdentityLine
                   icon={Building2}
                   text={alumniProfile.currentOrganization || 'Organization unavailable'}
-                  accent="text-cyan-300"
+                  accent="text-cyan-600"
                 />
                 <IdentityLine
                   icon={Workflow}
@@ -380,7 +380,7 @@ export default function PublicProfile() {
                 <IdentityLine
                   icon={MapPin}
                   text={alumniProfile.location || 'Location unavailable'}
-                  accent="text-emerald-300"
+                  accent="text-emerald-600"
                 />
               </>
             ) : null}
@@ -412,7 +412,7 @@ export default function PublicProfile() {
                     key={skill}
                     variants={sectionVariants}
                     whileHover={{ y: -2, scale: 1.03 }}
-                    className="rounded-full border border-cyan-500/35 bg-cyan-500/[0.08] px-3.5 py-1.5 text-xs font-semibold text-cyan-100"
+                    className="rounded-full border border-blue-200 bg-cyan-500/[0.08] px-3.5 py-1.5 text-xs font-semibold text-blue-700"
                   >
                     {skill}
                   </motion.span>
@@ -447,8 +447,8 @@ export default function PublicProfile() {
                   {achievements.map((item, idx) => (
                     <motion.article key={`${item}-${idx}`} variants={sectionVariants} className="relative">
                       <span className="absolute -left-6 top-1.5 h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(56,189,248,0.65)]" />
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-cyan-300 font-black">Milestone {idx + 1}</p>
-                      <p className="mt-1 text-sm md:text-[15px] text-slate-200 leading-relaxed">{item}</p>
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-cyan-600 font-black">Milestone {idx + 1}</p>
+                      <p className="mt-1 text-sm md:text-[15px] text-slate-700 leading-relaxed">{item}</p>
                     </motion.article>
                   ))}
                 </motion.div>
@@ -483,8 +483,8 @@ export default function PublicProfile() {
                     {alumniTenures.map((row, idx) => (
                       <motion.article key={`${row.position}-${idx}`} variants={sectionVariants} className="relative">
                         <span className="absolute -left-6 top-1.5 h-3 w-3 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(52,211,153,0.65)]" />
-                        <p className="text-sm md:text-base text-emerald-100 font-semibold">{row.position || 'Role'}</p>
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className="text-sm md:text-base text-emerald-800 font-semibold">{row.position || 'Role'}</p>
+                        <p className="mt-1 text-xs text-slate-600">
                           {row.fromYear || 'N/A'} - {row.toYear || 'N/A'}
                         </p>
                       </motion.article>
@@ -523,13 +523,13 @@ export default function PublicProfile() {
                     href={item.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center justify-between py-3 text-sm text-slate-200 hover:text-cyan-100 transition-colors"
+                    className="group flex items-center justify-between py-3 text-sm text-slate-700 hover:text-blue-700 transition-colors"
                   >
                     <span className="inline-flex items-center gap-2">
-                      <item.icon size={14} className="text-cyan-300" />
+                      <item.icon size={14} className="text-cyan-600" />
                       {item.label}
                     </span>
-                    <ExternalLink size={13} className="text-slate-500 group-hover:text-cyan-200" />
+                    <ExternalLink size={13} className="text-slate-500 group-hover:text-cyan-700" />
                   </motion.a>
                 ))}
               </motion.div>
@@ -543,16 +543,16 @@ export default function PublicProfile() {
 
 function SectionTitle({ icon: Icon, title }) {
   return (
-    <h2 className="text-sm md:text-base font-black uppercase tracking-[0.18em] text-slate-200 inline-flex items-center gap-2">
-      <Icon size={15} className="text-cyan-300" />
+    <h2 className="text-sm md:text-base font-black uppercase tracking-[0.18em] text-slate-700 inline-flex items-center gap-2">
+      <Icon size={15} className="text-cyan-600" />
       {title}
     </h2>
   );
 }
 
-function IdentityLine({ icon: Icon, text, accent = 'text-cyan-300' }) {
+function IdentityLine({ icon: Icon, text, accent = 'text-cyan-600' }) {
   return (
-    <p className="text-slate-300 inline-flex items-center gap-2">
+    <p className="text-slate-700 inline-flex items-center gap-2">
       <Icon size={14} className={accent} />
       {text}
     </p>

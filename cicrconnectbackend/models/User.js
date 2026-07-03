@@ -60,6 +60,7 @@ const TemporaryAccessSchema = new mongoose.Schema(
 
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
+    sortableName: { type: String, default: '', index: true },
     email: { type: String, required: true },
     emailHash: { type: String, unique: true, index: true, sparse: true, select: false },
     collegeId: {
@@ -142,6 +143,10 @@ const UserSchema = new mongoose.Schema({
     },
     verificationToken: String,
     verificationTokenExpires: Date,
+    signupOtp: String,
+    signupOtpExpires: Date,
+    magicLinkToken: String,
+    magicLinkExpires: Date,
     passwordResetOtp: String,
     passwordResetOtpExpires: Date,
     failedLoginAttempts: { type: Number, default: 0, min: 0 },
@@ -153,6 +158,9 @@ const UserSchema = new mongoose.Schema({
 
 // Encrypt password before saving
 UserSchema.pre('save', async function (next) {
+    if (this.isModified('name')) {
+        this.sortableName = String(this.name || '').toLowerCase().trim();
+    }
     if (!this.isModified('password')) {
         return next();
     }
@@ -165,6 +173,27 @@ UserSchema.pre('save', async function (next) {
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
+
+const blockAdminByName = function(next) {
+    const query = this.getQuery();
+    const update = this.getUpdate();
+    
+    const isSettingAdmin = update && (
+        (update.$set && update.$set.role === 'Admin') ||
+        (update.role === 'Admin')
+    );
+    
+    if (isSettingAdmin) {
+        if (query && Object.keys(query).some(k => k === 'name' || k.endsWith('.name'))) {
+            return next(new Error('FATAL: Privilege escalation by hardcoded name match is permanently forbidden by security policy.'));
+        }
+    }
+    next();
+};
+
+UserSchema.pre('updateMany', blockAdminByName);
+UserSchema.pre('updateOne', blockAdminByName);
+UserSchema.pre('findOneAndUpdate', blockAdminByName);
 
 // --- NEW METHOD: GENERATE VERIFICATION TOKEN ---
 UserSchema.methods.createVerificationToken = function() {

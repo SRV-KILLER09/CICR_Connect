@@ -6,6 +6,7 @@ const sendEmail = require('../utils/sendEmail');
 const { createNotifications } = require('../utils/notificationService');
 const { logAudit } = require('../utils/auditLogger');
 const crypto = require('crypto');
+const { isAdminOrHead, isSeniorTo } = require('../utils/policyEngine');
 
 const REQUIRED_ADMIN_APPROVALS = 3;
 const INVITE_CODE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -352,7 +353,26 @@ exports.sendInviteEmail = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    const isPrivileged = isAdminOrHead(req.user.role);
+    
+    let filterQuery = {};
+    if (!isPrivileged) {
+      const allJuniors = await User.find({}).select('year');
+      const juniorIds = allJuniors.filter(u => isSeniorTo(req.user, u.year)).map(u => u._id);
+      filterQuery = { _id: { $in: juniorIds } };
+    }
+
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 500);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+
+    const total = await User.countDocuments(filterQuery);
+    const users = await User.find(filterQuery)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
     const normalized = users.map((user) => {
       const plain = user.toObject();
       if (!plain.approvalStatus) {
@@ -361,7 +381,13 @@ exports.getAllUsers = async (req, res) => {
       plain.temporaryAccess = summarizeTemporaryAccess(plain);
       return plain;
     });
-    res.json(normalized);
+
+    res.json({
+      data: normalized,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
     console.error("❌ getAllUsers error:", err.message);
     res.status(500).send('Server error');
@@ -690,6 +716,14 @@ exports.updateUserByAdmin = async (req, res) => {
     if (!targetUser) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    if (!isAdminOrHead(req.user.role) && !isSeniorTo(req.user, targetUser.year)) {
+      return res.status(403).json({ success: false, message: 'You can only update junior students.' });
+    }
+
+    if (!isAdminOrHead(req.user.role) && payload.role) {
+      delete payload.role; // Prevent Seniors from escalating privileges
+    }
     const before = {
       _id: targetUser._id,
       role: targetUser.role,
@@ -957,6 +991,45 @@ exports.getAuditLogs = async (req, res) => {
 
     return res.json(logs);
   } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.sendBulkEmail = async (req, res) => {
+  try {
+    const { userIds, subject, message } = req.body;
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'No users selected' });
+    }
+    if (!subject || !message) {
+      return res.status(400).json({ success: false, message: 'Subject and message are required' });
+    }
+
+    const users = await User.find({ _id: { $in: userIds }, email: { $exists: true, $ne: '' } });
+    const emails = users.map(u => u.email).filter(Boolean);
+
+    if (emails.length === 0) {
+      return res.status(400).json({ success: false, message: 'Selected users do not have valid emails' });
+    }
+
+    await sendEmail({
+      bcc: emails,
+      subject,
+      message,
+    });
+
+    await logAudit({
+      actor: req.user.id,
+      action: 'BULK_EMAIL_SENT',
+      entityType: 'User',
+      entityId: req.user.id,
+      after: { recipientCount: emails.length, subject },
+      req,
+    });
+
+    return res.json({ success: true, message: `Email sent to ${emails.length} users.` });
+  } catch (err) {
+    console.error('❌ sendBulkEmail error:', err.message);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };

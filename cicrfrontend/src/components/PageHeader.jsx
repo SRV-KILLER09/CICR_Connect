@@ -35,8 +35,8 @@ export default function PageHeader({
             className="mt-2 flex items-center gap-3 min-w-0"
           >
             {Icon ? (
-              <div className="p-2 rounded-xl bg-linear-to-br from-blue-500/20 to-purple-500/10 border border-blue-500/20 shrink-0">
-                <Icon size={18} className="text-cyan-300" />
+              <div className="p-2 rounded-xl bg-linear-to-br from-blue-500/20 to-purple-500/10 border border-blue-300 shrink-0">
+                <Icon size={18} className="text-cyan-600" />
               </div>
             ) : null}
             <h1 className="ui-header-title truncate">{title}</h1>

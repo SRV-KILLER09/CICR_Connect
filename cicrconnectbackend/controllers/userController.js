@@ -169,12 +169,21 @@ const getMemberInsights = async (req, res) => {
     res.json(insights);
 };
 
-const getDirectoryMembers = async (_req, res) => {
-    const users = await User.find({
+const getDirectoryMembers = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const query = {
         $or: [{ approvalStatus: 'Approved' }, { isVerified: true }],
-    })
+    };
+
+    const total = await User.countDocuments(query);
+    const users = await User.find(query)
         .select('name email collegeId role branch year batch joinedAt')
-        .sort({ createdAt: -1 });
+        .sort({ sortableName: 1 })
+        .skip(skip)
+        .limit(limit);
 
     const directory = users.map((u) => ({
         _id: readDoc(u, '_id'),
@@ -187,9 +196,13 @@ const getDirectoryMembers = async (_req, res) => {
         batch: readDoc(u, 'batch', '') || '',
         joinedAt: readDoc(u, 'joinedAt', null),
     }));
-    directory.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 
-    res.json(directory);
+    res.json({
+        data: directory,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+    });
 };
 
 const getPublicProfileByCollegeId = async (req, res) => {

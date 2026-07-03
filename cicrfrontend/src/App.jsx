@@ -1,141 +1,157 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import Layout from './components/Layout';
-import GlobalToastHost from './components/GlobalToastHost';
+import Layout from '@/components/Layout';
+import GlobalToastHost from '@/components/GlobalToastHost';
+import { Loader2 } from 'lucide-react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { store } from '@/store';
+import { loadUser } from '@/store/authSlice';
 
-const Auth = lazy(() => import('./pages/Auth'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Projects = lazy(() => import('./pages/Projects'));
-const ProjectDetails = lazy(() => import('./pages/ProjectDetails'));
-const ProjectReview = lazy(() => import('./pages/ProjectReview'));
-const Meetings = lazy(() => import('./pages/Meetings'));
-const ScheduleMeeting = lazy(() => import('./pages/ScheduleMeeting'));
-const Hierarchy = lazy(() => import('./pages/Hierarchy'));
-const AdminPanel = lazy(() => import('./pages/AdminPanel'));
-const CreateProject = lazy(() => import('./pages/CreateProject'));
-const Community = lazy(() => import('./pages/Community'));
-const Profile = lazy(() => import('./pages/Profile'));
-const PublicProfile = lazy(() => import('./pages/PublicProfile'));
-const LearningHub = lazy(() => import('./pages/LearningHub'));
-const ProgramsHub = lazy(() => import('./pages/ProgramsHub'));
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
-const Guidelines = lazy(() => import('./pages/Guidelines'));
-const Communication = lazy(() => import('./pages/Communication'));
-const Events = lazy(() => import('./pages/Events'));
-const EventDetails = lazy(() => import('./pages/EventDetails'));
-const Apply = lazy(() => import('./pages/Apply'));
-const Inventory = lazy(() => import('./pages/Inventory'));
-const AddComponent = lazy(() => import('./pages/AddComponent'));
-const InventoryDetail = lazy(() => import('./pages/InventoryDetail'));
-const MyInventory = lazy(() => import('./pages/MyInventory'));
-
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (!token) return <Navigate to="/login" replace />;
-  return children;
-};
-
-const AdminRoute = ({ children }) => {
-  const profile = JSON.parse(localStorage.getItem('profile') || '{}');
-  const user = profile.result || profile;
-  const isAdmin = user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'head';
-
-  if (!isAdmin) return <Navigate to="/dashboard" replace />;
-  return children;
-};
-
-const StrictAdminRoute = ({ children }) => {
-  const profile = JSON.parse(localStorage.getItem('profile') || '{}');
-  const user = profile.result || profile;
-  const isStrictAdmin = user.role?.toLowerCase() === 'admin';
-
-  if (!isStrictAdmin) return <Navigate to="/dashboard" replace />;
-  return children;
-};
-
-function App() {
-  return (
-    <Router>
-      <GlobalToastHost />
-      <Suspense fallback={<RouteLoader />}>
-        <Routes>
-          <Route path="/login" element={<Auth />} />
-          <Route path="/verify-email/:token" element={<VerifyEmail />} />
-          <Route path="/profile/:collegeId" element={<PublicProfile />} />
-          <Route path="/apply" element={<Apply />} />
-
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:id" element={<ProjectDetails />} />
-            <Route path="/projects/:id/review" element={<ProjectReview />} />
-            <Route path="/create-project" element={<CreateProject />} />
-
-            <Route path="/meetings" element={<Meetings />} />
-            <Route path="/schedule" element={<ScheduleMeeting />} />
-            <Route path="/hierarchy" element={<Hierarchy />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/events/:id" element={<EventDetails />} />
-
-            <Route path="/community" element={<Community />} />
-            <Route path="/learning" element={<LearningHub />} />
-            <Route path="/programs" element={<ProgramsHub />} />
-            <Route path="/ai" element={<Navigate to="/communication" replace />} />
-            <Route
-              path="/communication"
-              element={
-                <StrictAdminRoute>
-                  <Communication />
-                </StrictAdminRoute>
-              }
-            />
-            <Route path="/guidelines" element={<Guidelines />} />
-
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/inventory/add" element={<AddComponent />} />
-            <Route path="/inventory/my-items" element={<MyInventory />} />
-            <Route path="/inventory/:id" element={<InventoryDetail />} />
-
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminPanel />
-                </AdminRoute>
-              }
-            />
-          </Route>
-
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </Suspense>
-    </Router>
-  );
-}
-
-export default App;
+const Auth = lazy(() => import('@/pages/Auth'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Projects = lazy(() => import('@/pages/Projects'));
+const Meetings = lazy(() => import('@/pages/Meetings'));
+const Hierarchy = lazy(() => import('@/pages/Hierarchy'));
+const AdminPanel = lazy(() => import('@/pages/AdminPanel'));
+const RecruitmentAdmin = lazy(() => import('@/pages/RecruitmentAdmin'));
+const Community = lazy(() => import('@/pages/Community'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const PublicProfile = lazy(() => import('@/pages/PublicProfile'));
+const LearningHub = lazy(() => import('@/pages/LearningHub'));
+const ProgramsHub = lazy(() => import('@/pages/ProgramsHub'));
+const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
+const Guidelines = lazy(() => import('@/pages/Guidelines'));
+const Communication = lazy(() => import('@/pages/Communication'));
+const Events = lazy(() => import('@/pages/Events'));
+const EventDetails = lazy(() => import('@/pages/EventDetails'));
+const Apply = lazy(() => import('@/pages/Apply'));
+const Inventory = lazy(() => import('@/pages/Inventory'));
+const AnnualBook = lazy(() => import('@/pages/AnnualBook'));
 
 function RouteLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center mesh-bg">
+    <div className="min-h-screen flex items-center justify-center bg-slate-950">
       <div className="flex flex-col items-center gap-4">
-        <div className="relative w-10 h-10">
-          <span className="absolute inset-0 rounded-full border-2 border-blue-500/30 animate-ping" />
-          <span className="absolute inset-1 rounded-full border-2 border-t-blue-400 border-r-purple-400 border-b-transparent border-l-transparent animate-spin" />
-        </div>
-        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-blue-300 font-black">
-          Loading Workspace
+        <Loader2 size={32} className="text-cyan-400 animate-spin" />
+        <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-bold">
+          Loading CICR Connect...
         </div>
       </div>
     </div>
   );
 }
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useSelector((state) => state.auth);
+  
+  if (loading) return <RouteLoader />;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  return children;
+};
+
+const RoleRoute = ({ roles, children }) => {
+  const { user, loading } = useSelector((state) => state.auth);
+
+  if (loading) return <RouteLoader />;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  if (roles && !roles.map(r => r.toLowerCase()).includes(String(user?.role).toLowerCase())) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+function AppRoutes() {
+  return (
+    <Suspense fallback={<RouteLoader />}>
+      <Routes>
+        <Route path="/login" element={<Auth />} />
+        <Route path="/auth/magic-link" element={<Auth />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/profile/:collegeId" element={<PublicProfile />} />
+        <Route path="/apply" element={<Apply />} />
+
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+
+          {/* Consolidated Modules */}
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/meetings" element={<Meetings />} />
+          <Route path="/inventory" element={<Inventory />} />
+
+          <Route path="/hierarchy" element={<Hierarchy />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/events/:id" element={<EventDetails />} />
+
+          <Route path="/community" element={<Community />} />
+          <Route path="/learning" element={<LearningHub />} />
+          <Route path="/programs" element={<ProgramsHub />} />
+          <Route path="/annual-book" element={<AnnualBook />} />
+          <Route path="/ai" element={<Navigate to="/communication" replace />} />
+          
+          <Route
+            path="/communication"
+            element={
+              <RoleRoute roles={['admin']}>
+                <Communication />
+              </RoleRoute>
+            }
+          />
+          <Route path="/guidelines" element={<Guidelines />} />
+
+          <Route
+            path="/admin"
+            element={
+              <RoleRoute roles={['admin', 'head']}>
+                <AdminPanel />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/recruitment"
+            element={
+              <RoleRoute roles={['admin', 'head']}>
+                <RecruitmentAdmin />
+              </RoleRoute>
+            }
+          />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Suspense>
+  );
+}
+
+function AppInitializer({ children }) {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(loadUser());
+  }, [dispatch]);
+  return children;
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <AppInitializer>
+        <Router>
+          <GlobalToastHost />
+          <AppRoutes />
+        </Router>
+      </AppInitializer>
+    </Provider>
+  );
+}
+
+export default App;

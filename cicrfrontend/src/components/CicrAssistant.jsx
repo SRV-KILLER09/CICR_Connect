@@ -30,9 +30,9 @@ export default function CicrAssistant({ title = 'CICR Assistant', placeholder = 
   };
 
   return (
-    <div className="border border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
-      <div className="p-6 border-b border-gray-800">
-        <h3 className="text-xl font-black text-white">{title}</h3>
+    <div className="border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-2xl">
+      <div className="p-6 border-b border-slate-200">
+        <h3 className="text-xl font-black text-slate-900">{title}</h3>
       </div>
       <div className="h-[360px] overflow-y-auto p-6 space-y-5">
         {messages.map((msg, idx) => (
@@ -41,7 +41,7 @@ export default function CicrAssistant({ title = 'CICR Assistant', placeholder = 
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'bot' ? 'bg-blue-600' : 'bg-gray-700'}`}>
                 {msg.role === 'bot' ? <Bot size={16} /> : <User size={16} />}
               </div>
-              <div className={`${msg.role === 'bot' ? 'bg-[#1c1c21] border border-gray-800 text-gray-200' : 'bg-blue-600 text-white'} p-4 rounded-2xl text-sm leading-relaxed`}>
+              <div className={`${msg.role === 'bot' ? 'bg-[#1c1c21] border border-slate-200 text-slate-700' : 'bg-blue-600 text-slate-900'} p-4 rounded-2xl text-sm leading-relaxed`}>
                 {msg.text}
               </div>
             </div>
@@ -52,20 +52,20 @@ export default function CicrAssistant({ title = 'CICR Assistant', placeholder = 
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
               <Bot size={16} />
             </div>
-            <div className="bg-[#1c1c21] border border-gray-800 p-3 rounded-xl">
+            <div className="bg-[#1c1c21] border border-slate-200 p-3 rounded-xl">
               <Loader2 className="animate-spin text-blue-500" size={16} />
             </div>
           </div>
         )}
       </div>
-      <div className="p-5 border-t border-gray-800 bg-[#1c1c21]/40">
+      <div className="p-5 border-t border-slate-200 bg-white shadow-sm border border-slate-200">
         <div className="flex gap-3">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder={placeholder}
-            className="flex-1 bg-[#0a0a0c] border border-gray-800 rounded-2xl px-5 py-4 text-sm outline-none focus:border-blue-500 text-white"
+            className="flex-1 bg-[#0a0a0c] border border-slate-200 rounded-2xl px-5 py-4 text-sm outline-none focus:border-blue-500 text-slate-900"
           />
           <button onClick={handleSend} disabled={loading} className="bg-blue-600 hover:bg-blue-700 px-5 rounded-2xl transition-all disabled:opacity-60">
             {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}

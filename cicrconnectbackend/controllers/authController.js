@@ -17,149 +17,8 @@ const { env } = require('../config/env');
 const logger = require('../utils/logger');
 const { logAudit } = require('../utils/auditLogger');
 
-const AUTH_RECOVERY_SELECT =
-  'name email collegeId password role warningCount hasUnreadWarning approvalStatus isVerified +emailHash +collegeIdHash';
-
-const findUserByIdentifierRecovery = async ({ normalizedEmail, normalizedCollegeId }) => {
-  const cursor = User.find({}).select(AUTH_RECOVERY_SELECT).cursor();
-  for await (const row of cursor) {
-    const rowEmail = normalizeEmail(row.get('email'));
-    const rowCollegeId = normalizeCollegeId(row.get('collegeId'));
-    if (normalizedEmail && rowEmail && rowEmail === normalizedEmail) {
-      return row;
-    }
-    if (normalizedCollegeId && rowCollegeId && rowCollegeId === normalizedCollegeId) {
-      return row;
-    }
-  }
-  return null;
-};
-
-const findUserByEmailAndCollegeIdRecovery = async ({ normalizedEmail, normalizedCollegeId }) => {
-  const cursor = User.find({}).select(AUTH_RECOVERY_SELECT).cursor();
-  for await (const row of cursor) {
-    const rowEmail = normalizeEmail(row.get('email'));
-    const rowCollegeId = normalizeCollegeId(row.get('collegeId'));
-    if (
-      normalizedEmail &&
-      normalizedCollegeId &&
-      rowEmail === normalizedEmail &&
-      rowCollegeId === normalizedCollegeId
-    ) {
-      return row;
-    }
-  }
-  return null;
-};
-
-const repairIdentityHashesIfNeeded = async (user) => {
-  if (!user) return;
-  const email = normalizeEmail(user.get('email'));
-  const collegeId = normalizeCollegeId(user.get('collegeId'));
-
-  const emailHashes =
-    typeof User.computeBlindIndexVariants === 'function'
-      ? User.computeBlindIndexVariants(email, normalizeEmail)
-      : [User.computeBlindIndex(email, normalizeEmail)].filter(Boolean);
-  const collegeIdHashes =
-    typeof User.computeBlindIndexVariants === 'function'
-      ? User.computeBlindIndexVariants(collegeId, normalizeCollegeId)
-      : [User.computeBlindIndex(collegeId, normalizeCollegeId)].filter(Boolean);
-
-  const expectedEmailHash = emailHashes[0] || undefined;
-  const expectedCollegeIdHash = collegeIdHashes[0] || undefined;
-
-  let changed = false;
-  if ((user.emailHash || undefined) !== expectedEmailHash) {
-    user.emailHash = expectedEmailHash;
-    changed = true;
-  }
-  if ((user.collegeIdHash || undefined) !== expectedCollegeIdHash) {
-    user.collegeIdHash = expectedCollegeIdHash;
-    changed = true;
-  }
-  if (!changed) return;
-
-  try {
-    await user.save({ validateBeforeSave: false });
-  } catch {
-    // Do not block login/reset flow if self-heal fails.
-  }
-};
-
-const normalizeHandle = (value) => {
-  if (!value) return '';
-  const raw = String(value).trim();
-  if (!raw) return '';
-
-  if (raw.startsWith('http://') || raw.startsWith('https://')) {
-    try {
-      const u = new URL(raw);
-      const path = u.pathname.replace(/^\/+|\/+$/g, '');
-      return path.split('/')[0] || '';
-    } catch {
-      return raw.replace(/^@+/, '');
-    }
-  }
-
-  return raw.replace(/^@+/, '');
-};
-
-const normalizeAvatarUrl = (value) => {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-
-  const isDataImage = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=\s]+$/i.test(raw);
-  if (isDataImage) {
-    // Keep payload bounded so avatar uploads don't exceed request limits.
-    if (raw.length > 180000) return null;
-    return raw;
-  }
-
-  try {
-    const parsed = new URL(raw);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return null;
-    }
-    return parsed.toString().slice(0, 600);
-  } catch {
-    return null;
-  }
-};
-
-const normalizeAllowedSections = (sections) => {
-  if (!Array.isArray(sections)) return [];
-  return sections
-    .map((value) => String(value || '').trim().toLowerCase())
-    .filter(Boolean)
-    .slice(0, 20);
-};
-
-const buildTemporaryAccessSnapshot = (user, { isTemporarySession = false } = {}) => {
-  const pass = user?.temporaryAccess || {};
-  const expiresAtRaw = pass.expiresAt ? new Date(pass.expiresAt) : null;
-  const expiresAt = expiresAtRaw && !Number.isNaN(expiresAtRaw.getTime()) ? expiresAtRaw : null;
-  const isActive = Boolean(pass.enabled) && Boolean(expiresAt) && expiresAt.getTime() > Date.now();
-  const remainingMinutes = isActive
-    ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 60000))
-    : 0;
-
-  return {
-    enabled: Boolean(pass.enabled),
-    isActive,
-    isTemporarySession: Boolean(isTemporarySession),
-    mode: String(pass.mode || 'read-only').toLowerCase() === 'read-only' ? 'read-only' : 'read-only',
-    expiresAt,
-    grantedAt: pass.grantedAt || null,
-    remainingMinutes,
-    restrictions: {
-      readOnly: pass?.restrictions?.readOnly !== false,
-      allowedSections: normalizeAllowedSections(pass?.restrictions?.allowedSections),
-      writeOperationsBlocked: true,
-      adminBlocked: true,
-    },
-  };
-};
+const catchAsync = require('../utils/catchAsync');
+const authService = require('../services/authService');
 
 const registerUser = async (req, res) => {
   const { name, email, password, collegeId, inviteCode, joinedAt } = req.body;
@@ -242,8 +101,9 @@ const registerUser = async (req, res) => {
     await consumedCode.save({ validateBeforeSave: false });
   }
 
+  let createdUser;
   try {
-    await User.create({
+    createdUser = await User.create({
       name: normalizedName,
       email: normalizedEmail,
       password,
@@ -276,10 +136,55 @@ const registerUser = async (req, res) => {
     return res.status(500).json({ message: 'Registration failed. Please try again.' });
   }
 
+  // --- SEND SIGNUP OTP ---
+  const otp = `${Math.floor(100000 + Math.random() * 900000)}`;
+  const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
+
+  createdUser.signupOtp = hashedOtp;
+  createdUser.signupOtpExpires = Date.now() + 15 * 60 * 1000;
+  await createdUser.save({ validateBeforeSave: false });
+
+  try {
+    await sendEmail({
+      email: normalizedEmail,
+      subject: 'Verify your CICR Account',
+      message: `
+        <p>Welcome to CICR Connect! Your signup verification OTP is:</p>
+        <h2 style="letter-spacing: 4px; color: #10B981;">${otp}</h2>
+        <p>This OTP is valid for 15 minutes.</p>
+      `,
+    });
+  } catch (err) {
+    logger.warn('Failed to send signup OTP email', { userId: createdUser._id, err: err.message });
+  }
+
   res.status(201).json({
     success: true,
-    message: 'Registration successful. Your account is pending admin approval.'
+    message: 'OTP sent to your email. Please verify to proceed.'
   });
+};
+
+const verifySignupOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !otp) {
+    return res.status(400).json({ message: 'Email and OTP are required' });
+  }
+
+  const hashedOtp = crypto.createHash('sha256').update(String(otp)).digest('hex');
+  
+  const user = await User.findOneByEmail(normalizedEmail);
+  if (!user || user.signupOtp !== hashedOtp || user.signupOtpExpires < Date.now()) {
+    return res.status(400).json({ message: 'Invalid or expired OTP' });
+  }
+
+  user.isVerified = true;
+  user.signupOtp = undefined;
+  user.signupOtpExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  res.json({ success: true, message: 'Email verified! Please wait for admin approval to log in.' });
 };
 
 const loginUser = async (req, res) => {
@@ -300,10 +205,10 @@ const loginUser = async (req, res) => {
   }
   if (!user) {
     // Recovery fallback for old/misaligned encrypted hash records.
-    user = await findUserByIdentifierRecovery({ normalizedEmail, normalizedCollegeId });
+    user = await authService.findUserByIdentifierRecovery({ normalizedEmail, normalizedCollegeId });
   }
   if (user) {
-    await repairIdentityHashesIfNeeded(user);
+    await authService.repairIdentityHashesIfNeeded(user);
   }
 
   const nowMs = Date.now();
@@ -358,7 +263,7 @@ const loginUser = async (req, res) => {
   }
 
   const isApproved = user.isVerified || approval === 'approved';
-  const temporaryAccess = buildTemporaryAccessSnapshot(user);
+  const temporaryAccess = authService.buildTemporaryAccessSnapshot(user);
   const isTemporarySession = !isApproved && temporaryAccess.isActive;
 
   if (!isApproved && !isTemporarySession) {
@@ -404,6 +309,14 @@ const loginUser = async (req, res) => {
   });
 
   const token = generateToken(user._id);
+  
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  });
+
   const profile = {
     _id: user._id,
     name: user.name,
@@ -424,11 +337,112 @@ const loginUser = async (req, res) => {
   res.json({ ...profile, token, result: { ...profile, token } });
 };
 
-const verifyEmail = async (req, res) => {
-  return res.status(410).json({
-    success: false,
-    message: 'Email verification is no longer used. Please wait for admin approval.',
+const requestMagicLink = async (req, res) => {
+  const { email } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  const user = await User.findOneByEmail(normalizedEmail);
+  if (!user) {
+    return res.status(404).json({ message: 'No account found with this email.' });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  user.magicLinkToken = hashedToken;
+  user.magicLinkExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+  await user.save({ validateBeforeSave: false });
+
+  const baseUrl = env.frontendUrls && env.frontendUrls.length > 0 ? env.frontendUrls[0] : 'http://localhost:3000';
+  const magicLink = `${baseUrl.replace(/\/$/, '')}/auth/magic-link?token=${token}`;
+
+  try {
+    await sendEmail({
+      email: normalizedEmail,
+      subject: 'Login to CICR Connect',
+      message: `
+        <p>Click the secure button below to magically log in to CICR Connect (Valid for 15 mins):</p>
+        <a href="${magicLink}" style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 10px;">Login Instantly</a>
+      `,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to send magic link. Try again.' });
+  }
+
+  res.json({ success: true, message: 'Magic link sent to your email.' });
+};
+
+const verifyMagicLink = async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: 'Token is required' });
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    magicLinkToken: hashedToken,
+    magicLinkExpires: { $gt: Date.now() },
   });
+
+  if (!user) {
+    return res.status(400).json({ message: 'Magic link is invalid or expired.' });
+  }
+
+  user.magicLinkToken = undefined;
+  user.magicLinkExpires = undefined;
+  user.lastLoginAt = new Date();
+  user.lastLoginIp = String(req.ip || '').trim();
+  await user.save({ validateBeforeSave: false });
+
+  const approval = String(user.approvalStatus || '').trim().toLowerCase();
+
+  if (approval === 'rejected') {
+    return res.status(403).json({ message: 'Your registration has been rejected.' });
+  }
+
+  const isApproved = user.isVerified || approval === 'approved';
+  const temporaryAccess = authService.buildTemporaryAccessSnapshot(user);
+  const isTemporarySession = !isApproved && temporaryAccess.isActive;
+
+  if (!isApproved && !isTemporarySession) {
+    return res.status(401).json({
+      code: 'ACCOUNT_PENDING_APPROVAL',
+      message: 'Account pending admin approval',
+    });
+  }
+
+  const jwtToken = generateToken(user._id);
+
+  res.cookie('token', jwtToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+
+  const profile = {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    collegeId: user.collegeId,
+    role: user.role,
+    approvalStatus: user.approvalStatus,
+    isVerified: user.isVerified,
+    warningCount: user.warningCount || 0,
+    hasUnreadWarning: !!user.hasUnreadWarning,
+    temporaryAccess: {
+      ...temporaryAccess,
+      isTemporarySession,
+    },
+  };
+
+  res.json({ ...profile, token: jwtToken, result: { ...profile, token: jwtToken } });
 };
 
 const resetPasswordWithCode = async (req, res) => {
@@ -507,6 +521,12 @@ const changePassword = async (req, res) => {
 
 const logoutUser = async (req, res) => {
   try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    
     await logAudit({
       actor: req.user.id,
       action: 'AUTH_LOGOUT',
@@ -532,7 +552,7 @@ const sendPasswordResetOtp = async (req, res) => {
   const user = await User.findOneByEmailAndCollegeId(normalizedEmail, normalizedCollegeId);
   const resolvedUser =
     user ||
-    (await findUserByEmailAndCollegeIdRecovery({
+    (await authService.findUserByEmailAndCollegeIdRecovery({
       normalizedEmail,
       normalizedCollegeId,
     }));
@@ -546,7 +566,7 @@ const sendPasswordResetOtp = async (req, res) => {
 
   resolvedUser.passwordResetOtp = hashedOtp;
   resolvedUser.passwordResetOtpExpires = Date.now() + 10 * 60 * 1000;
-  await repairIdentityHashesIfNeeded(resolvedUser);
+  await authService.repairIdentityHashesIfNeeded(resolvedUser);
   await resolvedUser.save({ validateBeforeSave: false });
 
   await sendEmail({
@@ -608,7 +628,7 @@ const getMe = async (req, res) => {
     return res.status(404).json({ message: 'User not found' });
   }
   const userResponse = user.toObject();
-  userResponse.temporaryAccess = buildTemporaryAccessSnapshot(userResponse, {
+  userResponse.temporaryAccess = authService.buildTemporaryAccessSnapshot(userResponse, {
     isTemporarySession: Boolean(req.user?.temporaryAccessContext?.isTemporarySession),
   });
 
@@ -689,7 +709,7 @@ const updateProfile = async (req, res) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(req.body, 'avatarUrl')) {
-      const avatarUrl = normalizeAvatarUrl(req.body.avatarUrl);
+      const avatarUrl = authService.normalizeAvatarUrl(req.body.avatarUrl);
       if (avatarUrl === null) {
         return res.status(400).json({ message: 'Profile picture must be a valid http/https URL or uploaded image file.' });
       }
@@ -708,8 +728,8 @@ const updateProfile = async (req, res) => {
       linkedin: String(req.body.social?.linkedin ?? user.social?.linkedin ?? '').trim(),
       github: String(req.body.social?.github ?? user.social?.github ?? '').trim(),
       portfolio: String(req.body.social?.portfolio ?? user.social?.portfolio ?? '').trim(),
-      instagram: normalizeHandle(req.body.social?.instagram ?? user.social?.instagram ?? ''),
-      facebook: normalizeHandle(req.body.social?.facebook ?? user.social?.facebook ?? ''),
+      instagram: authService.normalizeHandle(req.body.social?.instagram ?? user.social?.instagram ?? ''),
+      facebook: authService.normalizeHandle(req.body.social?.facebook ?? user.social?.facebook ?? ''),
     };
 
     if (Object.prototype.hasOwnProperty.call(req.body, 'alumniProfile')) {
@@ -757,14 +777,16 @@ const updateProfile = async (req, res) => {
 };
 
 module.exports = {
-  registerUser,
-  loginUser,
-  verifyEmail,
-  resetPasswordWithCode,
-  sendPasswordResetOtp,
-  resetPasswordWithOtp,
-  changePassword,
-  logoutUser,
-  getMe,
-  updateProfile,
+  registerUser: catchAsync(registerUser),
+  verifySignupOtp: catchAsync(verifySignupOtp),
+  loginUser: catchAsync(loginUser),
+  requestMagicLink: catchAsync(requestMagicLink),
+  verifyMagicLink: catchAsync(verifyMagicLink),
+  resetPasswordWithCode: catchAsync(resetPasswordWithCode),
+  sendPasswordResetOtp: catchAsync(sendPasswordResetOtp),
+  resetPasswordWithOtp: catchAsync(resetPasswordWithOtp),
+  changePassword: catchAsync(changePassword),
+  logoutUser: catchAsync(logoutUser),
+  getMe: catchAsync(getMe),
+  updateProfile: catchAsync(updateProfile),
 };

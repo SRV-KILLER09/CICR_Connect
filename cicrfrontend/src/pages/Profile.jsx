@@ -230,25 +230,25 @@ const buildPrintableIdCard = ({ user, qrUrl }) => {
 
 const MetricCard = ({ label, value, helper }) => (
   <article className="py-2">
-    <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-black">{label}</p>
+    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">{label}</p>
     <p className="profile-value-flow text-3xl font-black mt-2">{value}</p>
-    {helper && <p className="text-xs text-gray-500 mt-1">{helper}</p>}
+    {helper && <p className="text-xs text-slate-500 mt-1">{helper}</p>}
   </article>
 );
 
 const ProfileRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-start gap-3 py-1.5">
-    <Icon size={15} className="text-cyan-300 mt-[2px]" />
+    <Icon size={15} className="text-cyan-600 mt-[2px]" />
     <div className="min-w-0">
-      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">{label}</p>
-      <p className="text-sm text-gray-200 break-words">{value || 'Not added'}</p>
+      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black">{label}</p>
+      <p className="text-sm text-slate-700 break-words">{value || 'Not added'}</p>
     </div>
   </div>
 );
 
 const InputField = ({ icon: Icon, label, value, onChange, placeholder, type = 'text', disabled = false }) => (
   <div className="space-y-2">
-    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{label}</label>
+    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{label}</label>
     <div className="relative">
       <Icon className={`absolute left-4 top-1/2 -translate-y-1/2 ${disabled ? 'text-gray-600' : 'text-cyan-400'}`} size={17} />
       <input
@@ -257,7 +257,7 @@ const InputField = ({ icon: Icon, label, value, onChange, placeholder, type = 't
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full bg-[#0a0f16]/85 p-3.5 pl-11 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-white placeholder:text-gray-600"
+        className="w-full bg-white shadow-sm border border-slate-200 p-3.5 pl-11 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-slate-900 placeholder:text-gray-600"
       />
     </div>
   </div>
@@ -756,6 +756,7 @@ export default function Profile() {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const openProof = () => {
     if (!publicProfileUrl) {
       dispatchToast('Public proof URL unavailable.', 'error');
@@ -810,7 +811,7 @@ export default function Profile() {
       >
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-500 flex items-center justify-center text-2xl md:text-3xl font-black text-white shrink-0 shadow-lg shadow-cyan-500/20 overflow-hidden">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-500 flex items-center justify-center text-2xl md:text-3xl font-black text-slate-900 shrink-0 shadow-lg shadow-cyan-500/20 overflow-hidden">
               {user.avatarUrl && !avatarFailed ? (
                 <img
                   src={user.avatarUrl}
@@ -823,12 +824,12 @@ export default function Profile() {
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-300/90 font-black">My Profile</p>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-600/90 font-black">My Profile</p>
               <h1 className="profile-title-flow text-3xl md:text-4xl font-black tracking-tight break-words">{user.name || 'Member'}</h1>
-              <div className="mt-2 space-y-1 text-xs text-gray-300">
-                <p className="inline-flex items-center gap-1.5 break-all"><Mail size={12} className="text-cyan-300" /> {user.email || 'No email'}</p>
-                <p className="inline-flex items-center gap-1.5"><SquareUser size={12} className="text-cyan-300" /> {user.role || 'Member'}</p>
-                <p className="inline-flex items-center gap-1.5"><Hash size={12} className="text-cyan-300" /> {user.collegeId || 'No College ID'}</p>
+              <div className="mt-2 space-y-1 text-xs text-slate-700">
+                <p className="inline-flex items-center gap-1.5 break-all"><Mail size={12} className="text-cyan-600" /> {user.email || 'No email'}</p>
+                <p className="inline-flex items-center gap-1.5"><SquareUser size={12} className="text-cyan-600" /> {user.role || 'Member'}</p>
+                <p className="inline-flex items-center gap-1.5"><Hash size={12} className="text-cyan-600" /> {user.collegeId || 'No College ID'}</p>
               </div>
             </div>
           </div>
@@ -837,7 +838,7 @@ export default function Profile() {
             <button
               type="button"
               onClick={copyPublicProfileUrl}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/30 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors"
             >
               {copied ? <Save size={14} /> : <Copy size={14} />}
               {copied ? 'Copied' : 'Copy URL'}
@@ -847,7 +848,7 @@ export default function Profile() {
                 href={publicProfileUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500/20 px-3 py-2 text-sm text-blue-100 hover:bg-blue-500/30 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500/20 px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors"
               >
                 <ExternalLink size={14} />
                 Public View
@@ -857,25 +858,25 @@ export default function Profile() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/35 bg-cyan-500/10 px-2.5 py-1 text-[11px] text-cyan-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-cyan-500/10 px-2.5 py-1 text-[11px] text-cyan-700">
             <CheckCircle2 size={12} /> {completionScore}% complete
           </span>
-          <span className="inline-flex items-center rounded-full border border-gray-700/80 px-2.5 py-1 text-[11px] text-gray-300">
+          <span className="inline-flex items-center rounded-full border border-slate-300/80 px-2.5 py-1 text-[11px] text-slate-700">
             Checklist {checklistDone}/{profileChecklist.length}
           </span>
-          <span className="inline-flex items-center rounded-full border border-gray-700/80 px-2.5 py-1 text-[11px] text-gray-400">
+          <span className="inline-flex items-center rounded-full border border-slate-300/80 px-2.5 py-1 text-[11px] text-slate-600">
             Last updated {profileUpdatedLabel}
           </span>
         </div>
 
-        <p className="mt-5 text-sm md:text-base text-gray-300 leading-relaxed max-w-4xl">
+        <p className="mt-5 text-sm md:text-base text-slate-700 leading-relaxed max-w-4xl">
           {user.bio || 'Add a professional bio to highlight your CICR journey, role interests, and technical strengths.'}
         </p>
-        <p className="mt-2 text-sm text-cyan-200 break-all">{publicProfileUrl || 'Public profile URL unavailable'}</p>
+        <p className="mt-2 text-sm text-cyan-700 break-all">{publicProfileUrl || 'Public profile URL unavailable'}</p>
       </motion.section>
 
-      <section className="section-motion section-motion-delay-2 border-y border-gray-800/75 py-4">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500 font-black">Section Jump Links</p>
+      <section className="section-motion section-motion-delay-2 bg-white border border-slate-200 shadow-sm rounded-2xl py-6 px-6 rounded-3xl">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-black">Section Jump Links</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {[
             { id: 'about', label: 'About' },
@@ -885,14 +886,14 @@ export default function Profile() {
             { id: 'achievements', label: 'Achievements' },
             { id: 'security', label: 'Security' },
           ].map((item) => (
-            <a key={item.id} href={`#${item.id}`} className="btn btn-ghost !w-auto !px-3 !py-1.5">
+            <a key={item.id} href={`#${item.id}`} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !w-auto !px-3 !py-1.5">
               {item.label}
             </a>
           ))}
         </div>
 
         <div className="mt-4">
-          <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${completionScore}%` }}
@@ -900,14 +901,14 @@ export default function Profile() {
               className="h-full bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400"
             />
           </div>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-slate-500">
             {checklistDone} of {profileChecklist.length} profile checkpoints completed.
           </p>
           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
             {profileChecklist.map((item) => (
               <div key={item.id} className="flex items-center justify-between text-sm">
-                <span className={item.done ? 'text-gray-200' : 'text-gray-500'}>{item.label}</span>
-                <span className={item.done ? 'text-emerald-300' : 'text-gray-600'}>
+                <span className={item.done ? 'text-slate-700' : 'text-slate-500'}>{item.label}</span>
+                <span className={item.done ? 'text-emerald-600' : 'text-gray-600'}>
                   {item.done ? <CheckCircle2 size={14} /> : <Circle size={14} />}
                 </span>
               </div>
@@ -923,12 +924,12 @@ export default function Profile() {
         <MetricCard label="Years in CICR" value={yearsInCicr(user.joinedAt)} helper={`Joined ${fmtDate(user.joinedAt)}`} />
       </section>
 
-      <section className="section-motion section-motion-delay-2 border-y border-gray-800/70 py-6">
+      <section className="section-motion section-motion-delay-2 bg-white border border-slate-200 shadow-sm rounded-2xl py-6 px-6 rounded-3xl">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-cyan-300 font-black">Digital Identity Card</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-cyan-600 font-black">Digital Identity Card</p>
               <h2 className="profile-section-flow text-3xl font-black inline-flex items-center gap-2 mt-1">CICR Connect DigiCard</h2>
-              <p className="text-sm text-gray-400 mt-1">Preview, download, or share your digital membership card.</p>
+              <p className="text-sm text-slate-600 mt-1">Preview, download, or share your digital membership card.</p>
             </div>
             <div className="inline-flex items-center gap-2">
               <button
@@ -942,13 +943,13 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={handleShareIdCard}
-                className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/35 bg-cyan-500/15 px-4 py-2 text-cyan-100"
+                className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-cyan-500/15 px-4 py-2 text-blue-700"
               >
                 <Share2 size={14} /> Share
               </button>
             </div>
           </div>
-          <div className="relative mt-4 rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#071321] via-[#0a2340] to-[#162f55] p-5 md:p-7 overflow-hidden">
+          <div className="relative mt-4 rounded-3xl border border-blue-200 bg-gradient-to-br from-[#071321] via-[#0a2340] to-[#162f55] p-5 md:p-7 overflow-hidden">
             <div className="pointer-events-none absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_18%_18%,rgba(34,211,238,0.28)_0,transparent_42%),radial-gradient(circle_at_85%_72%,rgba(59,130,246,0.24)_0,transparent_38%),radial-gradient(circle_at_56%_8%,rgba(129,140,248,0.2)_0,transparent_32%)]" />
             <div className="pointer-events-none absolute inset-0 opacity-[0.07] bg-[linear-gradient(to_right,rgba(148,163,184,0.55)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.55)_1px,transparent_1px)] bg-[size:22px_22px]" />
             <div className="pointer-events-none absolute -top-16 -left-10 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl" />
@@ -957,14 +958,14 @@ export default function Profile() {
               <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 items-stretch">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-300 font-black">CICR Connect</p>
-                    <span className="text-xs font-black uppercase tracking-[0.15em] px-3 py-1 rounded-xl border border-cyan-400/40 bg-cyan-400/10 text-cyan-100">Status Active Member</span>
+                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-600 font-black">CICR Connect</p>
+                    <span className="text-xs font-black uppercase tracking-[0.15em] px-3 py-1 rounded-xl border border-blue-200 bg-cyan-400/10 text-blue-700">Status Active Member</span>
                   </div>
-                  <h3 className="text-5xl max-sm:text-4xl font-black mt-3 text-white tracking-tight">{user.name || 'Member'}</h3>
-                  <p className="mt-2 text-gray-300 max-w-xl">Digital identity card for CICR Connect member access and verification.</p>
+                  <h3 className="text-5xl max-sm:text-4xl font-black mt-3 text-slate-900 tracking-tight">{user.name || 'Member'}</h3>
+                  <p className="mt-2 text-slate-700 max-w-xl">Digital identity card for CICR Connect member access and verification.</p>
 
                   <div className="mt-5 grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div className="md:col-span-3 rounded-3xl border border-cyan-500/35 bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 min-h-[140px] flex items-center justify-center text-6xl font-black text-cyan-100 overflow-hidden">
+                    <div className="md:col-span-3 rounded-3xl border border-blue-200 bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 min-h-[140px] flex items-center justify-center text-6xl font-black text-blue-700 overflow-hidden">
                       {cardHasAvatar ? (
                         <img
                           src={cardAvatarUrl}
@@ -977,26 +978,26 @@ export default function Profile() {
                       )}
                     </div>
                     <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-gray-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-gray-400">Year</p><p className="text-2xl font-black mt-1">{user.year || 'N/A'}</p></div>
-                      <div className="rounded-2xl border border-gray-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-gray-400">Batch</p><p className="text-2xl font-black mt-1">{user.batch || 'N/A'}</p></div>
-                      <div className="rounded-2xl border border-gray-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-gray-400">Role</p><p className="text-2xl font-black mt-1">{user.role || 'N/A'}</p></div>
-                      <div className="rounded-2xl border border-gray-700/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-gray-400">Branch</p><p className="text-2xl font-black mt-1">{(user.branch || 'N/A').toUpperCase()}</p></div>
+                      <div className="rounded-2xl border border-slate-300/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Year</p><p className="text-2xl font-black mt-1">{user.year || 'N/A'}</p></div>
+                      <div className="rounded-2xl border border-slate-300/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Batch</p><p className="text-2xl font-black mt-1">{user.batch || 'N/A'}</p></div>
+                      <div className="rounded-2xl border border-slate-300/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Role</p><p className="text-2xl font-black mt-1">{user.role || 'N/A'}</p></div>
+                      <div className="rounded-2xl border border-slate-300/60 bg-white/[0.04] px-4 py-3"><p className="text-[10px] tracking-widest uppercase text-slate-600">Branch</p><p className="text-2xl font-black mt-1">{(user.branch || 'N/A').toUpperCase()}</p></div>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-cyan-500/25 bg-black/15 px-4 py-3 text-sm text-gray-200 flex flex-wrap gap-x-5 gap-y-1">
+                  <div className="mt-4 rounded-2xl border border-blue-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 flex flex-wrap gap-x-5 gap-y-1">
                     <span>College ID: {user.collegeId || 'N/A'}</span>
                     <span>Email ID: {user.email || 'N/A'}</span>
                   </div>
                 </div>
 
-                <div className="w-full lg:w-[18rem] xl:w-[19.5rem] rounded-3xl border border-cyan-500/25 bg-white/[0.06] p-4 shrink-0">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-200 font-black inline-flex items-center gap-1"><QrCode size={12} /> Scan To Verify</p>
-                  <img src={qrUrl} alt="ID QR" className="mt-3 w-full max-w-[260px] rounded-2xl bg-white p-2 border border-cyan-500/30 mx-auto" />
-                  <div className="mt-4 text-xs text-gray-300">
+                <div className="w-full lg:w-[18rem] xl:w-[19.5rem] rounded-3xl border border-blue-200 bg-white/[0.06] p-4 shrink-0">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-700 font-black inline-flex items-center gap-1"><QrCode size={12} /> Scan To Verify</p>
+                  <img src={qrUrl} alt="ID QR" className="mt-3 w-full max-w-[260px] rounded-2xl bg-white p-2 border border-blue-200 mx-auto" />
+                  <div className="mt-4 text-xs text-slate-700">
                     <div className="flex items-center justify-between"><span>CICR Member Card</span><span>{user.role || 'Member'}</span></div>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-2"><div className="h-full w-full bg-gradient-to-r from-cyan-400 to-blue-300" /></div>
-                    <p className="mt-2 break-all text-gray-400">{publicProfileUrl || 'No public URL available'}</p>
+                    <div className="h-2 rounded-full bg-slate-200 overflow-hidden mt-2"><div className="h-full w-full bg-gradient-to-r from-cyan-400 to-blue-300" /></div>
+                    <p className="mt-2 break-all text-slate-600">{publicProfileUrl || 'No public URL available'}</p>
                   </div>
                 </div>
               </div>
@@ -1004,10 +1005,10 @@ export default function Profile() {
 
             {!idCardEnabled && (
               <div className="absolute inset-0 flex items-center justify-center p-6">
-                <div className="rounded-2xl border border-rose-500/35 bg-[#2a1130]/85 px-6 py-5 text-center max-w-md">
-                  <ShieldAlert size={22} className="mx-auto text-rose-300" />
-                  <p className="mt-3 text-3xl font-black text-white tracking-tight">DigiCard Unavailable</p>
-                  <p className="mt-2 text-gray-200">This member's ID card is currently deactivated by an administrator and cannot be used for verification.</p>
+                <div className="rounded-2xl border border-red-200 bg-white shadow-sm border border-slate-200 px-6 py-5 text-center max-w-md">
+                  <ShieldAlert size={22} className="mx-auto text-red-600" />
+                  <p className="mt-3 text-3xl font-black text-slate-900 tracking-tight">DigiCard Unavailable</p>
+                  <p className="mt-2 text-slate-700">This member's ID card is currently deactivated by an administrator and cannot be used for verification.</p>
                 </div>
               </div>
             )}
@@ -1016,11 +1017,11 @@ export default function Profile() {
 
       <section
         id="snapshot"
-        className="grid grid-cols-1 xl:grid-cols-2 gap-8 section-motion section-motion-delay-2 border-y border-gray-800/70 py-6"
+        className="grid grid-cols-1 xl:grid-cols-2 gap-8 section-motion section-motion-delay-2 bg-white border border-slate-200 shadow-sm rounded-2xl py-6 px-6 rounded-3xl"
       >
         <article>
           <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-            <Briefcase size={17} className="text-cyan-300" />
+            <Briefcase size={17} className="text-cyan-600" />
             Professional Snapshot
           </h2>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1041,7 +1042,7 @@ export default function Profile() {
 
         <article id="social">
           <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-            <LinkIcon size={17} className="text-cyan-300" />
+            <LinkIcon size={17} className="text-cyan-600" />
             Social Presence
           </h2>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
@@ -1051,10 +1052,10 @@ export default function Profile() {
                 href={href || undefined}
                 target={href ? '_blank' : undefined}
                 rel={href ? 'noreferrer' : undefined}
-                className={`py-1 inline-flex flex-col min-w-0 ${href ? 'text-cyan-100 hover:text-cyan-300' : 'text-gray-500'}`}
+                className={`py-1 inline-flex flex-col min-w-0 ${href ? 'text-blue-700 hover:text-cyan-600' : 'text-slate-500'}`}
               >
                 <span className="text-[10px] uppercase tracking-widest font-black inline-flex items-center gap-1.5">
-                  <Icon size={13} className={href ? 'text-cyan-300' : 'text-gray-500'} /> {label}
+                  <Icon size={13} className={href ? 'text-cyan-600' : 'text-slate-500'} /> {label}
                 </span>
                 <span className="text-sm mt-1 break-all">{raw || 'Not added'}</span>
               </a>
@@ -1066,19 +1067,19 @@ export default function Profile() {
       {isAlumni && (
         <section
           id="alumni"
-          className="grid grid-cols-1 xl:grid-cols-12 gap-8 section-motion section-motion-delay-3 border-y border-gray-800/70 py-6"
+          className="grid grid-cols-1 xl:grid-cols-12 gap-8 section-motion section-motion-delay-3 bg-white border border-slate-200 shadow-sm rounded-2xl py-6 px-6 rounded-3xl"
         >
           <article className="xl:col-span-7">
             <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-              <Briefcase size={17} className="text-cyan-300" />
+              <Briefcase size={17} className="text-cyan-600" />
               CICR Role Timeline
             </h2>
             <div className="mt-3 space-y-2.5">
-              {alumniTenures.length === 0 && <p className="text-sm text-gray-500">No tenure history added yet.</p>}
+              {alumniTenures.length === 0 && <p className="text-sm text-slate-500">No tenure history added yet.</p>}
               {alumniTenures.map((tenure, idx) => (
-                <article key={`${tenure.position}-${idx}`} className="border-l-2 border-cyan-500/30 pl-3 py-1.5">
-                  <p className="text-sm font-bold text-cyan-100">{tenure.position}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                <article key={`${tenure.position}-${idx}`} className="border-l-2 border-blue-200 pl-3 py-1.5">
+                  <p className="text-sm font-bold text-blue-700">{tenure.position}</p>
+                  <p className="text-xs text-slate-600 mt-1">
                     {tenure.fromYear || 'N/A'} - {tenure.toYear || 'N/A'}
                   </p>
                 </article>
@@ -1088,39 +1089,39 @@ export default function Profile() {
 
           <article className="xl:col-span-5">
             <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-              <BookOpen size={17} className="text-cyan-300" />
+              <BookOpen size={17} className="text-cyan-600" />
               Alumni Contribution Focus
             </h2>
             <div className="mt-3 space-y-2.5">
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-slate-700">
                 {user.alumniProfile?.notableProjects || 'Add notable alumni support areas, talks, projects, or contributions.'}
               </p>
               <div className="flex flex-wrap gap-2">
-                {alumniMentorshipAreas.length === 0 && <span className="text-xs text-gray-500">No mentorship areas listed.</span>}
+                {alumniMentorshipAreas.length === 0 && <span className="text-xs text-slate-500">No mentorship areas listed.</span>}
                 {alumniMentorshipAreas.map((area) => (
-                  <span key={area} className="text-xs px-2.5 py-1 rounded-full border border-cyan-500/35 text-cyan-200">
+                  <span key={area} className="text-xs px-2.5 py-1 rounded-full border border-blue-200 text-cyan-700">
                     {area}
                   </span>
                 ))}
               </div>
-              <p className="text-xs text-gray-500">
-                Availability mode: <span className="text-gray-300">{user.alumniProfile?.availabilityMode || 'Flexible'}</span>
+              <p className="text-xs text-slate-500">
+                Availability mode: <span className="text-slate-700">{user.alumniProfile?.availabilityMode || 'Flexible'}</span>
               </p>
             </div>
           </article>
         </section>
       )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8 section-motion section-motion-delay-3 border-y border-gray-800/70 py-6">
+      <section className="grid grid-cols-1 xl:grid-cols-2 gap-8 section-motion section-motion-delay-3 bg-white border border-slate-200 shadow-sm rounded-2xl py-6 px-6 rounded-3xl">
         <article id="skills">
           <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-            <Briefcase size={17} className="text-cyan-300" />
+            <Briefcase size={17} className="text-cyan-600" />
             Skills
           </h2>
           <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 text-sm">
-            {skills.length === 0 && <li className="text-gray-500">No skills added yet.</li>}
+            {skills.length === 0 && <li className="text-slate-500">No skills added yet.</li>}
             {skills.map((skill) => (
-              <li key={skill} className="text-cyan-100 inline-flex items-center gap-2">
+              <li key={skill} className="text-blue-700 inline-flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
                 {skill}
               </li>
@@ -1130,11 +1131,11 @@ export default function Profile() {
 
         <article id="achievements">
           <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-            <Award size={17} className="text-cyan-300" />
+            <Award size={17} className="text-cyan-600" />
             Achievements
           </h2>
-          <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 text-sm text-gray-200">
-            {achievements.length === 0 && <li className="text-gray-500">No achievements added yet.</li>}
+          <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 text-sm text-slate-700">
+            {achievements.length === 0 && <li className="text-slate-500">No achievements added yet.</li>}
             {achievements.map((item, idx) => (
               <li key={`${item}-${idx}`} className="inline-flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-300 shrink-0" />
@@ -1166,42 +1167,42 @@ export default function Profile() {
 
       <section id="security" className="section-motion section-motion-delay-3">
         <h2 className="profile-section-flow text-xl font-black inline-flex items-center gap-2">
-          <Lock size={17} className="text-cyan-300" />
+          <Lock size={17} className="text-cyan-600" />
           Password & Security
         </h2>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-slate-500">
           Change your password from here anytime. If you forget it and email OTP is unavailable, ask Admin/Head for a reset code.
         </p>
         <form onSubmit={handlePasswordChange} className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Current Password</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Current Password</label>
             <input
               type="password"
               value={passwordForm.currentPassword}
               onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-              className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-white placeholder:text-gray-600"
+              className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-slate-900 placeholder:text-gray-600"
               placeholder="Current password"
               disabled={passwordBusy}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">New Password</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">New Password</label>
             <input
               type="password"
               value={passwordForm.newPassword}
               onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-              className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-white placeholder:text-gray-600"
+              className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-slate-900 placeholder:text-gray-600"
               placeholder="Minimum 6 characters"
               disabled={passwordBusy}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Confirm Password</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirm Password</label>
             <input
               type="password"
               value={passwordForm.confirmPassword}
               onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-              className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-white placeholder:text-gray-600"
+              className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-slate-900 placeholder:text-gray-600"
               placeholder="Re-enter new password"
               disabled={passwordBusy}
             />
@@ -1210,7 +1211,7 @@ export default function Profile() {
             <button
               type="submit"
               disabled={passwordBusy}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm text-cyan-100 hover:bg-cyan-500/30 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50 disabled:opacity-60"
             >
               {passwordBusy ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               Update Password
@@ -1227,7 +1228,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={closeEditor}
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-700/40 px-3 py-2 text-sm text-gray-300 hover:text-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-gray-700/40 px-3 py-2 text-sm text-slate-700 hover:text-slate-900"
               >
                 <X size={14} />
                 Close
@@ -1263,8 +1264,8 @@ export default function Profile() {
               />
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Upload Profile Photo</label>
-                <label className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-500/35 bg-cyan-500/10 px-3 py-3 text-sm text-cyan-100 hover:bg-cyan-500/20 cursor-pointer">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Upload Profile Photo</label>
+                <label className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-cyan-500/10 px-3 py-3 text-sm text-blue-700 hover:bg-blue-50 cursor-pointer">
                   {photoUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                   {photoUploading ? 'Processing image...' : 'Choose Image'}
                   <input
@@ -1275,7 +1276,7 @@ export default function Profile() {
                     className="hidden"
                   />
                 </label>
-                <p className="text-[11px] text-gray-500">Image will be optimized automatically before saving.</p>
+                <p className="text-[11px] text-slate-500">Image will be optimized automatically before saving.</p>
               </div>
 
               {!isAlumni && (
@@ -1354,19 +1355,19 @@ export default function Profile() {
                     disabled={loading}
                   />
 
-                  <div className="md:col-span-2 rounded-xl border border-gray-700/70 p-3 space-y-3">
+                  <div className="md:col-span-2 rounded-xl border border-slate-300/70 p-3 space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-400 font-black">CICR Role Timeline</p>
+                      <p className="text-[10px] uppercase tracking-widest text-slate-600 font-black">CICR Role Timeline</p>
                       <button
                         type="button"
                         onClick={addAlumniTenure}
-                        className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-200"
+                        className="inline-flex items-center gap-1 rounded-lg border border-blue-200 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-700"
                       >
                         <Plus size={12} />
                         Add
                       </button>
                     </div>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-slate-500">
                       Add position and years (max total 4 years, for example 2021-2022 for Head).
                     </p>
                     <div className="space-y-2">
@@ -1376,27 +1377,27 @@ export default function Profile() {
                             value={row.position}
                             onChange={(e) => updateAlumniTenure(idx, 'position', e.target.value)}
                             placeholder="Position (Head, Coordinator...)"
-                            className="sm:col-span-6 w-full bg-[#0a0f16]/85 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-sm text-white placeholder:text-gray-600"
+                            className="sm:col-span-6 w-full bg-white shadow-sm border border-slate-200 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-sm text-slate-900 placeholder:text-gray-600"
                             disabled={loading}
                           />
                           <input
                             value={row.fromYear}
                             onChange={(e) => updateAlumniTenure(idx, 'fromYear', e.target.value)}
                             placeholder="From"
-                            className="sm:col-span-2 w-full bg-[#0a0f16]/85 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-sm text-white placeholder:text-gray-600"
+                            className="sm:col-span-2 w-full bg-white shadow-sm border border-slate-200 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-sm text-slate-900 placeholder:text-gray-600"
                             disabled={loading}
                           />
                           <input
                             value={row.toYear}
                             onChange={(e) => updateAlumniTenure(idx, 'toYear', e.target.value)}
                             placeholder="To"
-                            className="sm:col-span-2 w-full bg-[#0a0f16]/85 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-sm text-white placeholder:text-gray-600"
+                            className="sm:col-span-2 w-full bg-white shadow-sm border border-slate-200 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-sm text-slate-900 placeholder:text-gray-600"
                             disabled={loading}
                           />
                           <button
                             type="button"
                             onClick={() => removeAlumniTenure(idx)}
-                            className="sm:col-span-2 inline-flex items-center justify-center rounded-xl border border-gray-700 px-2 py-2 text-gray-400 hover:text-red-300 hover:border-red-500/40"
+                            className="sm:col-span-2 inline-flex items-center justify-center rounded-xl border border-slate-300 px-2 py-2 text-slate-600 hover:text-red-300 hover:border-red-500/40"
                             disabled={loading}
                           >
                             <Trash2 size={14} />
@@ -1408,21 +1409,21 @@ export default function Profile() {
 
                   <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Mentorship Areas</label>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mentorship Areas</label>
                       <input
                         value={formData.alumniProfile.mentorshipAreasText}
                         onChange={(e) => updateAlumniFormField('mentorshipAreasText', e.target.value)}
                         disabled={loading}
                         placeholder="AI, Placements, Product, Startups"
-                        className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-white placeholder:text-gray-600"
+                        className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-slate-900 placeholder:text-gray-600"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Availability</label>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Availability</label>
                       <select
                         value={formData.alumniProfile.availabilityMode}
                         onChange={(e) => updateAlumniFormField('availabilityMode', e.target.value)}
-                        className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-white"
+                        className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 text-slate-900"
                         disabled={loading}
                       >
                         {ALUMNI_AVAILABILITY_OPTIONS.map((mode) => (
@@ -1434,7 +1435,7 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 flex items-center gap-2 rounded-xl border border-gray-700/70 px-3 py-2.5">
+                  <div className="md:col-span-2 flex items-center gap-2 rounded-xl border border-slate-300/70 px-3 py-2.5">
                     <input
                       id="willing-to-mentor"
                       type="checkbox"
@@ -1443,57 +1444,57 @@ export default function Profile() {
                       disabled={loading}
                       className="h-4 w-4 accent-cyan-500"
                     />
-                    <label htmlFor="willing-to-mentor" className="text-sm text-gray-300">
+                    <label htmlFor="willing-to-mentor" className="text-sm text-slate-700">
                       Open to mentorship sessions with current members
                     </label>
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Notable Alumni Contributions</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Notable Alumni Contributions</label>
                     <textarea
                       value={formData.alumniProfile.notableProjects}
                       onChange={(e) => updateAlumniFormField('notableProjects', e.target.value)}
                       rows={3}
                       disabled={loading}
                       placeholder="Workshops, talks, projects, referrals, industry collaborations..."
-                      className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-white placeholder:text-gray-600"
+                      className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-slate-900 placeholder:text-gray-600"
                     />
                   </div>
                 </>
               )}
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Professional Bio</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Professional Bio</label>
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   rows={3}
                   disabled={loading}
                   placeholder="Write your CICR journey, domain strengths, and current focus."
-                  className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-white placeholder:text-gray-600"
+                  className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-slate-900 placeholder:text-gray-600"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Skills (comma-separated)</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Skills (comma-separated)</label>
                 <input
                   value={formData.skillsText}
                   onChange={(e) => setFormData({ ...formData, skillsText: e.target.value })}
                   disabled={loading}
                   placeholder="React, Node.js, ML, Embedded Systems"
-                  className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-white placeholder:text-gray-600"
+                  className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-slate-900 placeholder:text-gray-600"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Achievements (one per line)</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Achievements (one per line)</label>
                 <textarea
                   value={formData.achievementsText}
                   onChange={(e) => setFormData({ ...formData, achievementsText: e.target.value })}
                   rows={4}
                   disabled={loading}
                   placeholder="Won XYZ hackathon&#10;Published ABC paper"
-                  className="w-full bg-[#0a0f16]/85 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-white placeholder:text-gray-600"
+                  className="w-full bg-white shadow-sm border border-slate-200 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-cyan-400/55 disabled:opacity-60 transition-all text-slate-900 placeholder:text-gray-600"
                 />
               </div>
 
@@ -1549,7 +1550,7 @@ export default function Profile() {
                   type="button"
                   onClick={closeEditor}
                   disabled={loading}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gray-700/40 px-4 py-2.5 text-sm text-gray-300 hover:text-white disabled:opacity-60"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gray-700/40 px-4 py-2.5 text-sm text-slate-700 hover:text-slate-900 disabled:opacity-60"
                 >
                   <X size={14} />
                   Cancel
@@ -1557,7 +1558,7 @@ export default function Profile() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm text-cyan-100 hover:bg-cyan-500/30 disabled:opacity-60"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50 disabled:opacity-60"
                 >
                   {loading ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
                   Save Changes
@@ -1569,14 +1570,14 @@ export default function Profile() {
       </AnimatePresence>
 
       <section className="pt-1 section-motion section-motion-delay-3 mobile-sticky-action">
-        <p className="text-sm text-gray-300 leading-relaxed">
+        <p className="text-sm text-slate-700 leading-relaxed">
           Keep your profile current so collaborators can find your expertise quickly and contact you directly.
         </p>
         <div className="mt-4 flex flex-col sm:flex-row gap-2">
           <button
             type="button"
             onClick={() => setIsEditing((prev) => !prev)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm text-cyan-100 hover:bg-cyan-500/30"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50"
           >
             {isEditing ? <X size={14} /> : <Edit2 size={14} />}
             {isEditing ? 'Close Editor' : 'Edit Profile'}
@@ -1584,7 +1585,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={copyPublicProfileUrl}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500/20 px-4 py-2.5 text-sm text-blue-100 hover:bg-blue-500/30"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500/20 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50"
           >
             <Copy size={14} />
             Copy Public URL

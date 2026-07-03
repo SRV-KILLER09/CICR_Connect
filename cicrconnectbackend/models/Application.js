@@ -4,24 +4,32 @@ const { normalizeEmail, normalizePhone } = require('../utils/fieldCrypto');
 
 const ApplicationSchema = new mongoose.Schema(
   {
-    fullName: { type: String, required: true, trim: true, maxlength: 120 },
-    email: { type: String, required: true, trim: true, lowercase: true, maxlength: 160 },
+    fullName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true, lowercase: true },
     emailHash: { type: String, index: true, sparse: true, select: false },
-    phone: { type: String, required: true, trim: true, maxlength: 24 },
+    phone: { type: String, required: true, trim: true },
     phoneHash: { type: String, index: true, sparse: true, select: false },
     year: { type: Number, min: 1, max: 6 },
-    branch: { type: String, default: '', trim: true, maxlength: 80 },
-    college: { type: String, default: '', trim: true, maxlength: 120 },
-    interests: [{ type: String, trim: true, maxlength: 80 }],
-    motivation: { type: String, default: '', maxlength: 2400 },
-    experience: { type: String, default: '', maxlength: 2400 },
-    availability: { type: String, default: '', maxlength: 240 },
+    branch: { type: String, default: '', trim: true },
+    college: { type: String, default: '', trim: true },
+    interests: [{ type: String, trim: true }],
+    motivation: { type: String, default: '' },
+    experience: { type: String, default: '' },
+    availability: { type: String, default: '' },
     socials: {
-      linkedin: { type: String, default: '', maxlength: 200 },
-      github: { type: String, default: '', maxlength: 200 },
-      portfolio: { type: String, default: '', maxlength: 200 },
+      linkedin: { type: String, default: '' },
+      github: { type: String, default: '' },
+      portfolio: { type: String, default: '' },
     },
     event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
+    recruitmentDrive: { type: mongoose.Schema.Types.ObjectId, ref: 'RecruitmentDrive', default: null },
+    dynamicResponses: { type: mongoose.Schema.Types.Mixed, default: {} },
+    interview: {
+      date: { type: Date, default: null },
+      link: { type: String, default: '' },
+      location: { type: String, default: '' },
+      marks: { type: Number, default: null, min: 0, max: 100 }
+    },
     status: {
       type: String,
       enum: ['New', 'InReview', 'Interview', 'Accepted', 'Selected', 'Rejected'],
@@ -31,7 +39,7 @@ const ApplicationSchema = new mongoose.Schema(
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     notes: [
       {
-        text: { type: String, required: true, maxlength: 1200 },
+        text: { type: String, required: true },
         author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         createdAt: { type: Date, default: Date.now },
       },
@@ -41,15 +49,15 @@ const ApplicationSchema = new mongoose.Schema(
         status: { type: String, required: true },
         changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         changedAt: { type: Date, default: Date.now },
-        note: { type: String, default: '', maxlength: 600 },
+        note: { type: String, default: '' },
       },
     ],
     inviteCode: { type: String, default: '' },
     inviteSentAt: { type: Date, default: null },
     inviteSentBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    source: { type: String, default: '', maxlength: 120 },
-    ip: { type: String, default: '', maxlength: 64 },
-    userAgent: { type: String, default: '', maxlength: 300 },
+    source: { type: String, default: '' },
+    ip: { type: String, default: '' },
+    userAgent: { type: String, default: '' },
   },
   { timestamps: true }
 );
@@ -89,6 +97,8 @@ applyModelEncryption(ApplicationSchema, {
     'source',
     'ip',
     'userAgent',
+    'interview.link',
+    'interview.location'
   ],
   hashes: [
     { source: 'email', target: 'emailHash', normalize: normalizeEmail },

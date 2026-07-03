@@ -1,6 +1,6 @@
 const MentorshipTask = require('../models/MentorshipTask');
 const User = require('../models/User');
-const { isAdminOrHead, parseYear, canManageJunior } = require('../utils/hierarchy');
+const { isAdminOrHead, authorizeAction } = require('../utils/policyEngine');
 const { createNotifications } = require('../utils/notificationService');
 const { logAudit } = require('../utils/auditLogger');
 
@@ -39,20 +39,7 @@ const taskSnapshot = (task) => ({
   completedAt: task?.completedAt || null,
 });
 
-const assertHierarchyEligibility = (actor, targetUser) => {
-  if (isAdminOrHead(actor)) return '';
 
-  const actorYear = parseYear(actor?.year);
-  if (!actorYear || actorYear < 2) {
-    return 'Only seniors (2nd year and above) can assign hierarchy tasks.';
-  }
-
-  if (!canManageJunior(actor, targetUser)) {
-    return 'You can assign tasks only to your year or junior members.';
-  }
-
-  return '';
-};
 
 const populateTask = (query) =>
   query
@@ -85,9 +72,9 @@ const createTask = async (req, res) => {
       return res.status(400).json({ message: 'Assigned member account is not approved yet.' });
     }
 
-    const hierarchyError = assertHierarchyEligibility(req.user, assignee);
-    if (hierarchyError) {
-      return res.status(403).json({ message: hierarchyError });
+    const decision = authorizeAction('ASSIGN_HIERARCHY', req.user, { targetYear: assignee.year });
+    if (!decision.allowed) {
+      return res.status(403).json({ message: decision.reason });
     }
 
     const category = normalizeEnum(req.body.category, CATEGORY_OPTIONS, 'Project');
@@ -161,8 +148,12 @@ const listTasks = async (req, res) => {
       query.$or = [{ assignedBy: req.user.id }, { assignedTo: req.user.id }];
     }
 
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 500);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+
     const rows = await populateTask(
-      MentorshipTask.find(query).sort({ createdAt: -1, dueDate: 1 })
+      MentorshipTask.find(query).sort({ createdAt: -1, dueDate: 1 }).skip(skip).limit(limit)
     );
 
     return res.json(rows);
@@ -206,9 +197,9 @@ const updateTask = async (req, res) => {
       }
 
       if (!isPrivileged) {
-        const hierarchyError = assertHierarchyEligibility(req.user, nextAssignee);
-        if (hierarchyError) {
-          return res.status(403).json({ message: hierarchyError });
+        const decision = authorizeAction('ASSIGN_HIERARCHY', req.user, { targetYear: nextAssignee.year });
+        if (!decision.allowed) {
+          return res.status(403).json({ message: decision.reason });
         }
       }
 

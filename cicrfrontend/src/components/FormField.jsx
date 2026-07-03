@@ -54,19 +54,19 @@ export default function FormField({
   }, [children, describedBy, fieldError, id]);
 
   return (
-    <div className={`ui-field ${className}`}>
+    <div className={`flex flex-col gap-1.5 ${className}`}>
       {label ? (
-        <label htmlFor={id} className="ui-label">
+        <label htmlFor={id} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
           <span>{label}</span>
-          {required ? <span className="ui-label-required">Required</span> : null}
-          {!required && optional ? <span className="ui-label-optional">Optional</span> : null}
+          {required ? <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">Required</span> : null}
+          {!required && optional ? <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Optional</span> : null}
         </label>
       ) : null}
       {enhancedChild}
       {fieldError ? (
-        <p id={`${id || 'field'}-error`} role="alert" className="ui-field-error">{fieldError}</p>
+        <p id={`${id || 'field'}-error`} role="alert" className="text-xs font-medium text-rose-500">{fieldError}</p>
       ) : displayHint ? (
-        <p id={`${id || 'field'}-hint`} aria-live="polite" className="ui-field-hint">{displayHint}</p>
+        <p id={`${id || 'field'}-hint`} aria-live="polite" className="text-xs text-slate-500">{displayHint}</p>
       ) : null}
     </div>
   );

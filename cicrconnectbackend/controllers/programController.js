@@ -15,6 +15,7 @@ const LearningSubmission = require('../models/LearningSubmission');
 const { createNotifications } = require('../utils/notificationService');
 const { logAudit } = require('../utils/auditLogger');
 const { geminiGenerate } = require('../utils/geminiClient');
+const { isSeniorTo, isAlumni, parseYear } = require('../utils/policyEngine');
 
 const ADMIN_ROLES = new Set(['admin', 'head']);
 const QUEST_AUDIENCES = ['AllMembers', 'FirstYear', 'SecondYear', 'FirstAndSecond'];
@@ -770,11 +771,18 @@ const listMyQuestSubmissions = async (req, res) => {
 
 const listQuestSubmissions = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
-      return res.status(403).json({ message: 'Only Admin/Head can review all quest submissions.' });
+    const isPrivileged = isAdminOrHead(req.user);
+    if (!isPrivileged && !isAlumni(req.user.role) && parseYear(req.user.year) < 2) {
+      return res.status(403).json({ message: 'Only seniors can review quest submissions.' });
     }
 
     const query = {};
+    if (!isPrivileged) {
+      const allJuniors = await User.find({}).select('year');
+      const juniorIds = allJuniors.filter(u => isSeniorTo(req.user, u.year)).map(u => u._id);
+      query.member = { $in: juniorIds };
+    }
+
     const status = normalizeEnum(req.query.status, ['Submitted', 'Approved', 'Rejected', 'NeedsRevision'], '');
     if (status) query.status = status;
 
@@ -797,13 +805,14 @@ const listQuestSubmissions = async (req, res) => {
 
 const reviewQuestSubmission = async (req, res) => {
   try {
-    if (!isAdminOrHead(req.user)) {
-      return res.status(403).json({ message: 'Only Admin/Head can review quest submissions.' });
-    }
-
     const row = await QuestSubmission.findById(req.params.id).populate('quest', 'title points');
     if (!row) {
       return res.status(404).json({ message: 'Quest submission not found.' });
+    }
+
+    const memberObj = await User.findById(row.member).select('year role');
+    if (!isAdminOrHead(req.user) && !isSeniorTo(req.user, memberObj?.year)) {
+      return res.status(403).json({ message: 'You can only review submissions from junior students.' });
     }
 
     const status = normalizeEnum(req.body.status, ['Approved', 'Rejected', 'NeedsRevision'], '');

@@ -282,6 +282,10 @@ const createEvent = async (req, res) => {
 
 const getEvents = async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 500);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+
     const query = {};
     if (req.query.status) {
       query.status = req.query.status;
@@ -292,7 +296,9 @@ const getEvents = async (req, res) => {
 
     const events = await Event.find(query)
       .populate('createdBy', 'name role')
-      .sort({ startTime: 1 });
+      .sort({ startTime: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const payload = events.map((row) => ({
       ...row.toObject(),

@@ -261,6 +261,10 @@ const createProject = async (req, res) => {
  */
 const getAllProjects = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
     const query = {};
     const eventId = sanitize(req.query.eventId);
     const status = sanitize(req.query.status);
@@ -277,11 +281,20 @@ const getAllProjects = async (req, res) => {
       query.$or = [{ lead: actorId }, { guide: actorId }, { team: actorId }];
     }
 
+    const total = await Project.countDocuments(query);
     const projects = await populateProject(
-      Project.find(query).sort({ deadline: 1, createdAt: -1 })
+      Project.find(query)
+        .sort({ deadline: 1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
     );
 
-    return res.json(projects);
+    return res.json({
+        data: projects,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

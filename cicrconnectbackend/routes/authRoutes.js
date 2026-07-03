@@ -4,8 +4,10 @@ const validateRequest = require('../middleware/validateRequest');
 const {
   registerUser,
   loginUser,
+  requestMagicLink,
+  verifyMagicLink,
   getMe,
-  verifyEmail,
+  verifySignupOtp,
   resetPasswordWithCode,
   sendPasswordResetOtp,
   resetPasswordWithOtp,
@@ -33,6 +35,17 @@ router.post(
 );
 
 router.post(
+  '/register/verify-otp',
+  authLimiter,
+  [
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('otp').trim().isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+  ],
+  validateRequest,
+  verifySignupOtp
+);
+
+router.post(
   '/login',
   authLimiter,
   [
@@ -54,7 +67,25 @@ router.post(
   loginUser
 );
 
-router.get('/verifyemail/:token', verifyEmail);
+router.post(
+  '/login/magic-link',
+  authLimiter,
+  [
+    body('email').isEmail().withMessage('Valid email is required'),
+  ],
+  validateRequest,
+  requestMagicLink
+);
+
+router.post(
+  '/login/magic-link/verify',
+  authLimiter,
+  [
+    body('token').trim().notEmpty().withMessage('Token is required'),
+  ],
+  validateRequest,
+  verifyMagicLink
+);
 router.post(
   '/password/send-otp',
   passwordLimiter,

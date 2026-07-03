@@ -70,11 +70,27 @@ const createApplication = async (req, res) => {
       linkedEvent = event._id;
     }
 
+    let linkedDrive = null;
+    if (req.body.recruitmentDriveId) {
+      const RecruitmentDrive = require('../models/RecruitmentDrive');
+      const drive = await RecruitmentDrive.findById(req.body.recruitmentDriveId);
+      if (!drive) {
+        return res.status(400).json({ message: 'Selected recruitment drive is invalid.' });
+      }
+      if (!drive.isOpen) {
+        return res.status(400).json({ message: 'This recruitment drive is currently closed.' });
+      }
+      if (drive.deadline && drive.deadline < new Date()) {
+        return res.status(400).json({ message: 'Deadline has passed for this recruitment drive.' });
+      }
+      linkedDrive = drive._id;
+    }
+
     const application = await Application.create({
       fullName,
       email,
       phone,
-      year,
+      year: year ? Number(year) : undefined,
       branch: sanitize(req.body.branch),
       college: sanitize(req.body.college),
       interests: Array.isArray(req.body.interests)
@@ -92,6 +108,8 @@ const createApplication = async (req, res) => {
         portfolio: sanitize(req.body.portfolio),
       },
       event: linkedEvent,
+      recruitmentDrive: linkedDrive,
+      dynamicResponses: req.body.dynamicResponses || {},
       source: sanitize(req.body.source) || 'public-form',
       ip: sanitize(req.ip),
       userAgent: sanitize(req.get('user-agent')),
@@ -135,35 +153,45 @@ const createApplication = async (req, res) => {
 
 const getApplications = async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 500);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+
     const query = {};
     const status = normalizeStatus(req.query.status);
     if (status) {
       query.status = status;
     }
 
-    let applications = await Application.find(query)
+    if (req.query.recruitmentDrive) {
+      query.recruitmentDrive = req.query.recruitmentDrive;
+    }
+    
+    if (req.query.eventId) {
+      query.event = req.query.eventId;
+    }
+
+    if (req.query.q) {
+      const needle = String(req.query.q || '').trim();
+      const regex = new RegExp(needle, 'i');
+      query.$or = [
+        { fullName: regex },
+        { email: regex },
+        { phone: regex },
+        { branch: regex },
+        { college: regex }
+      ];
+    }
+
+    const applications = await Application.find(query)
       .populate('assignedTo', 'name role')
       .populate('event', 'title type startTime')
       .populate('notes.author', 'name role')
       .populate('history.changedBy', 'name role')
       .populate('inviteSentBy', 'name role')
-      .sort({ createdAt: -1 });
-
-    if (req.query.q) {
-      const needle = String(req.query.q || '').trim().toLowerCase();
-      applications = applications.filter((row) => {
-        const searchable = [
-          row.fullName,
-          row.email,
-          row.phone,
-          row.branch,
-          row.college,
-        ]
-          .map((value) => String(value || '').toLowerCase())
-          .join(' ');
-        return searchable.includes(needle);
-      });
-    }
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.json(applications);
   } catch (err) {
@@ -188,6 +216,9 @@ const updateApplication = async (req, res) => {
       const status = normalizeStatus(req.body.status);
       if (!status) {
         return res.status(400).json({ message: 'Invalid status value' });
+      }
+      if (application.status === 'Selected' || application.status === 'Rejected') {
+        return res.status(400).json({ message: `Cannot change status of a ${application.status} application.` });
       }
       if (status !== application.status) {
         application.status = status;
@@ -368,9 +399,173 @@ const sendApplicationInvite = async (req, res) => {
   }
 };
 
+const scheduleInterview = async (req, res) => {
+  try {
+    const { date, location, link } = req.body;
+    const application = await Application.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    application.interview = {
+      date: date || application.interview?.date,
+      location: location || application.interview?.location,
+      link: link || application.interview?.link,
+      marks: application.interview?.marks
+    };
+    
+    application.status = 'Interview';
+    application.history.unshift({
+      status: 'Interview',
+      changedBy: req.user.id,
+      note: `Interview scheduled for ${new Date(date).toLocaleString()}`
+    });
+
+    await application.save();
+
+    const emailMessage = `
+      <div style="font-family: sans-serif; max-width: 640px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+        <h2 style="color: #0f172a; margin-bottom: 8px;">Interview Invitation - CICR</h2>
+        <p>Dear ${application.fullName},</p>
+        <p>We are pleased to invite you for an interview for your recent application.</p>
+        <div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin: 20px 0;">
+          <p style="margin:0 0 8px 0;"><strong>Date & Time:</strong> ${new Date(date).toLocaleString()}</p>
+          ${location ? `<p style="margin:0 0 8px 0;"><strong>Location:</strong> ${location}</p>` : ''}
+          ${link ? `<p style="margin:0;"><strong>Meeting Link:</strong> <a href="${link}">${link}</a></p>` : ''}
+        </div>
+        <p>Please be prepared and join 5 minutes early.</p>
+        <p>Best regards,<br/>The CICR Team</p>
+      </div>
+    `;
+
+    await sendEmail({
+      email: application.email,
+      subject: 'Interview Invitation - CICR',
+      message: emailMessage,
+    });
+
+    res.json({ success: true, message: 'Interview scheduled and email sent' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const gradeInterview = async (req, res) => {
+  try {
+    const { marks, note } = req.body;
+    const application = await Application.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    application.interview.marks = marks;
+    
+    if (note) {
+      application.notes.push({
+        text: note,
+        author: req.user.id
+      });
+    }
+
+    await application.save();
+    res.json({ success: true, message: 'Interview graded successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const finalizeApplication = async (req, res) => {
+  try {
+    const { action } = req.body; // 'Accept' or 'Reject'
+    const application = await Application.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    if (action === 'Reject') {
+      application.status = 'Rejected';
+      application.history.unshift({
+        status: 'Rejected',
+        changedBy: req.user.id,
+        note: 'Application rejected.'
+      });
+      await application.save();
+
+      const emailMessage = `
+        <div style="font-family: sans-serif; max-width: 640px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+          <h2 style="color: #0f172a; margin-bottom: 8px;">Update on your CICR Application</h2>
+          <p>Dear ${application.fullName},</p>
+          <p>Thank you for taking the time to apply and interview with us. We appreciate your interest and the effort you put into the process.</p>
+          <p>After careful consideration, we regret to inform you that we will not be moving forward with your application at this time.</p>
+          <p>We encourage you to stay connected with our community and apply again in the future.</p>
+          <p>Best regards,<br/>The CICR Team</p>
+        </div>
+      `;
+
+      await sendEmail({
+        email: application.email,
+        subject: 'Update on your CICR Application',
+        message: emailMessage,
+      });
+
+      return res.json({ success: true, message: 'Application rejected and email sent' });
+    } else if (action === 'Accept') {
+      const User = require('../models/User');
+      const { normalizeEmail } = require('../utils/fieldCrypto');
+      
+      const emailBlindIndex = User.computeBlindIndex ? User.computeBlindIndex(application.email, normalizeEmail) : null;
+      let existingUser = null;
+      if (emailBlindIndex) {
+        existingUser = await User.findOne({ emailHash: emailBlindIndex });
+      }
+
+      if (existingUser) {
+        if (application.status !== 'Selected') {
+          application.status = 'Selected';
+          application.history.unshift({
+            status: 'Selected',
+            changedBy: req.user.id,
+            note: 'Application accepted. User already exists.',
+          });
+          await application.save();
+        }
+
+        const emailMessage = `
+          <div style="font-family: sans-serif; max-width: 640px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+            <h2 style="color: #0f172a; margin-bottom: 8px;">Congratulations! You have been selected.</h2>
+            <p>Dear ${application.fullName},</p>
+            <p>We are thrilled to inform you that you have been selected to join CICR!</p>
+            <p>Our records indicate that you already have an active account on the CICR Connect portal.</p>
+            <div style="background: #f8fafc; border-left: 4px solid #10b981; padding: 16px; margin: 20px 0;">
+              <p style="margin:0;">Please log in to your existing account to view further onboarding instructions.</p>
+            </div>
+            <a href="${resolveFrontendUrl()}/login" style="display:inline-block;padding:10px 16px;background:#0f172a;color:#fff;text-decoration:none;border-radius:8px;">
+              Log in to CICR Portal
+            </a>
+            <p style="margin-top:16px;font-size:12px;color:#6b7280;">Best regards,<br/>The CICR Team</p>
+          </div>
+        `;
+
+        await sendEmail({
+          email: application.email,
+          subject: 'You have been selected for CICR!',
+          message: emailMessage,
+        });
+
+        return res.json({ success: true, message: 'User already exists. Marked as Selected and email sent.' });
+      }
+
+      // If user does not exist, use standard invite flow
+      req.params.id = application._id;
+      return module.exports.sendApplicationInvite(req, res);
+    } else {
+      return res.status(400).json({ message: 'Invalid action' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createApplication,
   getApplications,
   updateApplication,
   sendApplicationInvite,
+  scheduleInterview,
+  gradeInterview,
+  finalizeApplication
 };

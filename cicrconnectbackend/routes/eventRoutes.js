@@ -8,14 +8,13 @@ const {
   updateEvent,
   deleteEvent,
 } = require('../controllers/eventController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+const { protect, authorizePolicy } = require('../middleware/authMiddleware');
 
 router.get('/', getEvents);
 router.get('/:id', protect, getEventById);
-router.post('/', protect, authorize('Admin'), createEvent);
-router.post('/:id/participants', protect, authorize('Admin'), addEventParticipants);
-router.put('/:id', protect, authorize('Admin'), updateEvent);
-router.delete('/:id', protect, authorize('Admin'), deleteEvent);
+router.post('/', protect, authorizePolicy('MANAGE_EVENTS'), createEvent);
+router.post('/:id/participants', protect, authorizePolicy('MANAGE_EVENTS'), addEventParticipants);
+router.put('/:id', protect, authorizePolicy('MANAGE_EVENTS'), updateEvent);
+router.delete('/:id', protect, authorizePolicy('MANAGE_EVENTS'), deleteEvent);
 
 module.exports = router;

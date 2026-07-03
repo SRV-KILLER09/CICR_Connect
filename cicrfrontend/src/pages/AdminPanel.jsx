@@ -5,6 +5,7 @@ import {
   fetchMembers,
   updateUserByAdmin,
   deleteUser,
+  sendBulkEmail,
   generateInvite,
   sendInviteEmail,
   fetchPendingAdminActions,
@@ -26,7 +27,7 @@ import {
   Shield, Trash2, UserPlus, Copy, Check, 
   Search, Mail, Send, Loader2, UserCheck, GraduationCap, Fingerprint,
   ClipboardCheck, Crown, KeyRound, Megaphone, ScrollText, Download, ArrowUpDown,
-  UserCog, GripVertical, ShieldAlert, Sparkles, X
+  UserCog, GripVertical, ShieldAlert, Sparkles, X, ChevronDown
 } from 'lucide-react';
 
 const APPLICATION_STATUSES = ['New', 'InReview', 'Interview', 'Accepted', 'Selected', 'Rejected'];
@@ -60,11 +61,11 @@ const normalizeAppStage = (app = {}) => {
 };
 
 const statusBadgeClass = (status) => {
-  if (status === 'Selected') return 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10';
-  if (status === 'Accepted') return 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10';
-  if (status === 'Interview') return 'text-amber-300 border-amber-500/40 bg-amber-500/10';
-  if (status === 'Rejected') return 'text-rose-300 border-rose-500/40 bg-rose-500/10';
-  return 'text-gray-300 border-gray-700 bg-gray-800/30';
+  if (status === 'Selected') return 'text-emerald-600 border-emerald-200 bg-emerald-500/10';
+  if (status === 'Accepted') return 'text-cyan-600 border-blue-200 bg-cyan-500/10';
+  if (status === 'Interview') return 'text-amber-600 border-amber-200 bg-amber-500/10';
+  if (status === 'Rejected') return 'text-red-600 border-red-200 bg-rose-500/10';
+  return 'text-slate-700 border-slate-300 bg-slate-50 border-slate-200 text-slate-600';
 };
 
 const dispatchToast = (message, type = 'info') => {
@@ -78,40 +79,40 @@ const dispatchToast = (message, type = 'info') => {
 function AdminKpiTile({ label, value, hint, tone = 'cyan' }) {
   const toneClass =
     tone === 'emerald'
-      ? 'border-emerald-500/35 bg-emerald-500/10'
+      ? 'border-emerald-200 bg-emerald-50'
       : tone === 'amber'
-      ? 'border-amber-500/35 bg-amber-500/10'
+      ? 'border-amber-200 bg-amber-50'
       : tone === 'blue'
-      ? 'border-blue-500/35 bg-blue-500/10'
-      : 'border-cyan-500/35 bg-cyan-500/10';
+      ? 'border-blue-200 bg-blue-50'
+      : 'border-cyan-200 bg-cyan-50';
 
   return (
-    <article className={`rounded-2xl border px-4 py-3 ${toneClass}`}>
-      <p className="text-[10px] uppercase tracking-[0.18em] text-gray-300 font-black">{label}</p>
-      <p className="text-2xl font-black text-white mt-1">{value}</p>
-      <p className="text-[11px] text-gray-400 mt-1">{hint}</p>
+    <article className={`bg-white rounded-xl shadow-sm px-4 py-3 border-t-4 ${toneClass} border-x border-b border-x-slate-200 border-b-slate-200`}>
+      <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">{label}</p>
+      <p className="text-3xl font-black text-slate-800 mt-1">{value}</p>
+      <p className="text-[11px] text-slate-500 mt-1 font-medium">{hint}</p>
     </article>
   );
 }
 
 function AdminSectionShell({ icon: Icon, title, subtitle, badge, actions, className = '', children }) {
   return (
-    <section className={`rounded-[1.6rem] border border-gray-800 bg-[#090e15]/72 overflow-hidden ${className}`}>
-      <header className="px-5 md:px-6 py-4 border-b border-gray-800 flex flex-wrap items-start justify-between gap-3">
+    <section className={`bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden ${className}`}>
+      <header className="px-5 md:px-6 py-4 border-b border-slate-100 flex flex-wrap items-start justify-between gap-3 bg-slate-50">
         <div className="flex items-start gap-3">
           {Icon ? (
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-700 text-cyan-200 bg-cyan-500/10">
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white text-blue-600 border border-slate-200 shadow-sm">
               <Icon size={17} />
             </span>
           ) : null}
           <div>
-            <h3 className="text-base md:text-lg font-black text-white">{title}</h3>
-            {subtitle ? <p className="text-xs text-gray-500 mt-1">{subtitle}</p> : null}
+            <h3 className="text-base md:text-lg font-black text-slate-900">{title}</h3>
+            {subtitle ? <p className="text-xs text-slate-500 mt-1">{subtitle}</p> : null}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {badge ? (
-            <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-cyan-500/35 text-cyan-200 bg-cyan-500/10">
+            <span className="text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full border border-blue-200 text-blue-600 bg-blue-50 font-bold">
               {badge}
             </span>
           ) : null}
@@ -126,6 +127,9 @@ function AdminSectionShell({ icon: Icon, title, subtitle, badge, actions, classN
 export default function AdminPanel() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [users, setUsers] = useState([]);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersTotalPages, setUsersTotalPages] = useState(1);
+  const [usersLoadingMore, setUsersLoadingMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || localStorage.getItem('admin_users_search') || '');
   const [adminTab, setAdminTab] = useState(searchParams.get('tab') || localStorage.getItem('admin_panel_tab') || 'users');
@@ -156,6 +160,10 @@ export default function AdminPanel() {
   const [newViewName, setNewViewName] = useState('');
   const [columnChooserOpen, setColumnChooserOpen] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [bulkEmailModalOpen, setBulkEmailModalOpen] = useState(false);
+  const [bulkEmailSubject, setBulkEmailSubject] = useState('');
+  const [bulkEmailMessage, setBulkEmailMessage] = useState('');
+  const [bulkEmailSending, setBulkEmailSending] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [inviteMaxUses, setInviteMaxUses] = useState(1);
@@ -277,15 +285,27 @@ export default function AdminPanel() {
     [deleteDialog.typedPhrase, requiredDeletePhrase]
   );
 
-  const loadUsers = async () => {
+  const loadUsers = async (page = 1, append = false) => {
+    if (page > 1) setUsersLoadingMore(true);
     try {
-      const { data } = await fetchMembers();
-      setUsers(Array.isArray(data) ? data : []);
+      const res = await fetchMembers({ page, limit: 50 });
+      const incomingData = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+      
+      setUsers(prev => append ? [...prev, ...incomingData] : incomingData);
+      setUsersTotalPages(res.data?.totalPages || 1);
+      setUsersPage(page);
     } catch (err) { 
       console.error("Failed to load users", err); 
-      setUsers([]);
+      if (!append) setUsers([]);
     } finally { 
       setLoading(false); 
+      setUsersLoadingMore(false);
+    }
+  };
+
+  const loadMoreUsers = () => {
+    if (usersPage < usersTotalPages && !usersLoadingMore) {
+      loadUsers(usersPage + 1, true);
     }
   };
 
@@ -650,28 +670,31 @@ export default function AdminPanel() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const filteredUsers = users.filter((u) => {
-    const query = searchTerm.trim().toLowerCase();
-    const matchesQuery =
-      !query ||
-      u.name?.toLowerCase().includes(query) ||
-      u.collegeId?.toLowerCase().includes(query) ||
-      u.email?.toLowerCase().includes(query);
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const query = searchTerm.trim().toLowerCase();
+      const matchesQuery =
+        !query ||
+        u.name?.toLowerCase().includes(query) ||
+        u.collegeId?.toLowerCase().includes(query) ||
+        u.email?.toLowerCase().includes(query);
 
-    const approval = String(u.approvalStatus || (u.isVerified ? 'Approved' : 'Pending')).toLowerCase();
-    const role = String(u.role || '').toLowerCase();
-    const year = Number(u.year || 0);
-    const matchesQuickFilter =
-      userQuickFilter === 'all' ||
-      (userQuickFilter === 'pending' && approval === 'pending') ||
-      (userQuickFilter === 'approved' && approval === 'approved') ||
-      (userQuickFilter === 'admins' && (role === 'admin' || role === 'head')) ||
-      (userQuickFilter === 'alumni' && role === 'alumni') ||
-      (userQuickFilter === 'freshers' && year === 1) ||
-      (userQuickFilter === 'seniors' && year >= 2);
+      const approval = String(u.approvalStatus || (u.isVerified ? 'Approved' : 'Pending')).toLowerCase();
+      const role = String(u.role || '').toLowerCase();
+      const year = Number(u.year || 0);
 
-    return matchesQuery && matchesQuickFilter;
-  });
+      const matchesQuick =
+        userQuickFilter === 'all' ||
+        (userQuickFilter === 'pending' && approval === 'pending') ||
+        (userQuickFilter === 'approved' && approval === 'approved') ||
+        (userQuickFilter === 'admins' && (role === 'admin' || role === 'head')) ||
+        (userQuickFilter === '1st' && year === 1) ||
+        (userQuickFilter === '2nd+' && year >= 2) ||
+        (userQuickFilter === 'alumni' && role === 'alumni');
+
+      return matchesQuery && matchesQuick;
+    });
+  }, [users, searchTerm, userQuickFilter]);
 
   const sortedUsers = useMemo(() => {
     const [key, dir] = String(sortBy || 'name_asc').split('_');
@@ -693,7 +716,11 @@ export default function AdminPanel() {
   }, [filteredUsers, sortBy]);
 
   useEffect(() => {
-    setSelectedUserIds((prev) => prev.filter((id) => sortedUsers.some((row) => String(row._id) === String(id))));
+    setSelectedUserIds((prev) => {
+      const valid = prev.filter((id) => sortedUsers.some((row) => String(row._id) === String(id)));
+      if (valid.length === prev.length) return prev;
+      return valid;
+    });
   }, [sortedUsers]);
 
   const allVisibleSelected =
@@ -742,6 +769,31 @@ export default function AdminPanel() {
       alert(err.response?.data?.message || 'Bulk approval failed for one or more users.');
     } finally {
       setBulkBusy(false);
+    }
+  };
+
+  const handleBulkEmailSubmit = async (e) => {
+    e.preventDefault();
+    if (!bulkEmailSubject || !bulkEmailMessage) {
+      dispatchToast('Subject and message are required.', 'error');
+      return;
+    }
+    setBulkEmailSending(true);
+    try {
+      await sendBulkEmail({
+        userIds: selectedUserIds,
+        subject: bulkEmailSubject,
+        message: bulkEmailMessage,
+      });
+      dispatchToast('Bulk email sent successfully!', 'success');
+      setBulkEmailModalOpen(false);
+      setBulkEmailSubject('');
+      setBulkEmailMessage('');
+      setSelectedUserIds([]);
+    } catch (err) {
+      dispatchToast(err.response?.data?.message || 'Failed to send bulk email.', 'error');
+    } finally {
+      setBulkEmailSending(false);
     }
   };
 
@@ -794,16 +846,19 @@ export default function AdminPanel() {
     return parsed.toLocaleString();
   }, [inviteMeta?.expiresAt]);
 
-  const filteredApplications = applications.filter((app) => {
-    const matchesStatus = appFilter === 'All' || app.status === appFilter;
-    const query = appSearch.trim().toLowerCase();
-    const matchesSearch =
-      !query ||
-      app.fullName?.toLowerCase().includes(query) ||
-      app.email?.toLowerCase().includes(query) ||
-      app.phone?.toLowerCase().includes(query);
-    return matchesStatus && matchesSearch;
-  });
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      const matchesStatus = appFilter === 'All' || app.status === appFilter;
+      const query = appSearch.trim().toLowerCase();
+      const matchesSearch =
+        !query ||
+        app.fullName?.toLowerCase().includes(query) ||
+        app.email?.toLowerCase().includes(query) ||
+        app.phone?.toLowerCase().includes(query) ||
+        app.college?.toLowerCase().includes(query);
+      return matchesStatus && matchesSearch;
+    });
+  }, [applications, appFilter, appSearch]);
 
   const applicationsByLane = useMemo(() => {
     const map = {};
@@ -825,9 +880,11 @@ export default function AdminPanel() {
   );
 
   useEffect(() => {
-    setSelectedApplicationIds((prev) =>
-      prev.filter((id) => filteredApplications.some((row) => String(row._id) === String(id)))
-    );
+    setSelectedApplicationIds((prev) => {
+      const valid = prev.filter((id) => filteredApplications.some((row) => String(row._id) === String(id)));
+      if (valid.length === prev.length) return prev;
+      return valid;
+    });
   }, [filteredApplications]);
 
   const toggleColumnVisibility = (columnId) => {
@@ -996,7 +1053,7 @@ export default function AdminPanel() {
   ];
 
   return (
-    <div className="ui-page space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 overflow-x-hidden page-motion-d">
+    <div className="space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 space-y-6 md:space-y-8 max-w-7xl pb-20 px-4 sm:px-6 lg:px-8 overflow-x-hidden page-motion-d">
       <div className="section-motion section-motion-delay-1">
         <PageHeader
           eyebrow="Admin Operations"
@@ -1005,18 +1062,18 @@ export default function AdminPanel() {
           icon={Shield}
           actions={
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 bg-[#0a0f17]/85">
-                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Uses</span>
+              <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-black">Uses</span>
                 <input
                   type="number"
                   min={1}
                   max={100}
                   value={inviteMaxUses}
                   onChange={(e) => setInviteMaxUses(e.target.value)}
-                  className="w-14 bg-transparent text-sm text-white outline-none"
+                  className="w-14 bg-transparent text-sm text-slate-800 outline-none"
                 />
               </label>
-              <button onClick={handleGenerateInvite} className="btn btn-primary whitespace-nowrap">
+              <button onClick={handleGenerateInvite} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-900 rounded-xl shadow-sm text-sm font-semibold transition-colors flex items-center gap-2 whitespace-nowrap">
                 <UserPlus size={14} /> Generate Access Key
               </button>
             </div>
@@ -1024,8 +1081,8 @@ export default function AdminPanel() {
         />
       </div>
 
-      <div className="ui-toolbar-sticky section-motion section-motion-delay-1">
-        <div className="flex items-center gap-2 rounded-2xl border border-gray-800/90 p-1 bg-[#060a10]/80 overflow-x-auto">
+      <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-slate-200 py-2 section-motion section-motion-delay-1">
+        <div className="flex items-center gap-2 rounded-2xl border border-slate-200 p-1 bg-slate-100 overflow-x-auto shadow-inner">
           {adminTabs.map((tab) => (
             <button
               key={tab.id}
@@ -1033,8 +1090,8 @@ export default function AdminPanel() {
               onClick={() => setAdminTab(tab.id)}
               className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-[0.16em] inline-flex items-center gap-2 whitespace-nowrap transition-colors ${
                 adminTab === tab.id
-                  ? 'text-white border border-blue-500/45 bg-blue-500/10'
-                  : 'text-gray-500 hover:text-gray-200'
+                  ? 'text-blue-700 border border-slate-200 bg-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <tab.icon size={13} />
@@ -1063,28 +1120,28 @@ export default function AdminPanel() {
               initial={{ height: 0, opacity: 0, y: -20 }}
               animate={{ height: 'auto', opacity: 1, y: 0 }}
               exit={{ height: 0, opacity: 0, y: -20 }}
-              className="border border-blue-500/30 bg-[#08101a]/70 p-6 md:p-8 rounded-[1.8rem] shadow-2xl overflow-hidden relative pro-aurora section-motion section-motion-delay-2"
+              className="border border-blue-300 bg-white shadow-sm border border-slate-200 p-6 md:p-8 rounded-[1.8rem] shadow-2xl overflow-hidden relative pro-aurora section-motion section-motion-delay-2"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center relative z-10">
                 <div className="text-center lg:text-left space-y-2">
-                  <span className="text-[10px] font-black text-blue-300 uppercase tracking-[0.3em]">Access Key Active</span>
+                  <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em]">Access Key Active</span>
                   <div className="flex items-center justify-center lg:justify-start gap-5">
-                    <h3 className="text-4xl md:text-5xl font-black font-mono tracking-[0.2em] text-white">{inviteCode}</h3>
-                    <button aria-label="Copy invite code" onClick={copyToClipboard} className="p-3 bg-[#0a0f17] border border-gray-700 rounded-xl hover:border-blue-500 transition-all">
-                      {copied ? <Check size={20} className="text-green-500" /> : <Copy size={20} className="text-gray-400" />}
+                    <h3 className="text-4xl md:text-5xl font-black font-mono tracking-[0.2em] text-slate-900">{inviteCode}</h3>
+                    <button aria-label="Copy invite code" onClick={copyToClipboard} className="p-3 bg-[#0a0f17] border border-slate-300 rounded-xl hover:border-blue-500 transition-all">
+                      {copied ? <Check size={20} className="text-green-500" /> : <Copy size={20} className="text-slate-600" />}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    Usage limit: <span className="text-white font-semibold">{inviteMeta?.maxUses || 1}</span> • Remaining:{' '}
-                    <span className="text-cyan-200 font-semibold">{inviteMeta?.remainingUses ?? inviteMeta?.maxUses ?? 1}</span>
+                  <p className="text-xs text-slate-600">
+                    Usage limit: <span className="text-slate-900 font-semibold">{inviteMeta?.maxUses || 1}</span> • Remaining:{' '}
+                    <span className="text-cyan-700 font-semibold">{inviteMeta?.remainingUses ?? inviteMeta?.maxUses ?? 1}</span>
                   </p>
-                  <p className="text-[11px] text-amber-200">
+                  <p className="text-[11px] text-amber-700">
                     Expires in 24 hours{inviteExpiryLabel ? ` (${inviteExpiryLabel})` : ''}
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center lg:text-left">Dispatch code securely</p>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center lg:text-left">Dispatch code securely</p>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={20} />
@@ -1093,13 +1150,13 @@ export default function AdminPanel() {
                         placeholder="recipient@college.edu"
                         value={recipientEmail}
                         onChange={(e) => setRecipientEmail(e.target.value)}
-                        className="ui-input pl-12 !rounded-2xl !py-4 !text-sm !font-semibold"
+                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 pl-12 !rounded-2xl !py-4 !text-sm !font-semibold"
                       />
                     </div>
                     <button 
                       onClick={handleSendInvite}
                       disabled={isSending}
-                      className="btn btn-primary !rounded-2xl !px-8 !py-4"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !rounded-2xl !px-8 !py-4"
                     >
                       {isSending ? <Loader2 className="animate-spin" size={18} /> : <><Send size={18} /> Dispatch</>}
                     </button>
@@ -1119,18 +1176,18 @@ export default function AdminPanel() {
         badge={`${activeTemporaryAccessCount} active`}
         className="section-motion section-motion-delay-2"
         actions={(
-          <button type="button" onClick={loadTemporaryAccessUsers} className="btn btn-ghost !px-3 !py-1.5">
+          <button type="button" onClick={loadTemporaryAccessUsers} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !px-3 !py-1.5">
             Refresh Passes
           </button>
         )}
       >
         <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-5">
-          <div className="rounded-2xl border border-cyan-500/35 bg-linear-to-br from-cyan-500/15 via-[#081018] to-[#05080f] p-4 md:p-5 space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-200 font-black">Create Access Pass</p>
+          <div className="rounded-2xl border border-blue-200 bg-linear-to-br from-cyan-500/15 via-[#081018] to-[#05080f] p-4 md:p-5 space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-black">Create Access Pass</p>
             <select
               value={temporaryAccessForm.userId}
               onChange={(e) => setTemporaryAccessForm((prev) => ({ ...prev, userId: e.target.value }))}
-              className="ui-input [color-scheme:dark]"
+              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 "
             >
               <option value="">Select pending member</option>
               {temporaryAccessEligibleUsers.map((u) => (
@@ -1141,32 +1198,32 @@ export default function AdminPanel() {
             </select>
 
             <div className="grid grid-cols-2 gap-2">
-              <label className="text-xs text-gray-400">Duration (hours)</label>
-              <label className="text-xs text-gray-400">Mode</label>
+              <label className="text-xs text-slate-600">Duration (hours)</label>
+              <label className="text-xs text-slate-600">Mode</label>
               <input
                 type="number"
                 min={1}
                 max={168}
                 value={temporaryAccessForm.hours}
                 onChange={(e) => setTemporaryAccessForm((prev) => ({ ...prev, hours: e.target.value }))}
-                className="ui-input"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
               />
               <select
                 value={temporaryAccessForm.mode}
                 onChange={(e) => setTemporaryAccessForm((prev) => ({ ...prev, mode: e.target.value }))}
-                className="ui-input [color-scheme:dark]"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 "
               >
                 <option value="read-only">Read-only</option>
               </select>
             </div>
 
             <div>
-              <label className="text-xs text-gray-400">Allowed sections (comma-separated)</label>
+              <label className="text-xs text-slate-600">Allowed sections (comma-separated)</label>
               <textarea
                 rows={3}
                 value={temporaryAccessForm.sections}
                 onChange={(e) => setTemporaryAccessForm((prev) => ({ ...prev, sections: e.target.value }))}
-                className="ui-input resize-none mt-1"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none mt-1"
               />
             </div>
 
@@ -1174,15 +1231,15 @@ export default function AdminPanel() {
               type="button"
               onClick={handleGrantTemporaryAccess}
               disabled={temporaryAccessBusy || !temporaryAccessForm.userId}
-              className="btn btn-secondary !w-full !text-cyan-100 !border-cyan-500/45 !bg-cyan-500/10"
+              className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !w-full !text-blue-700 !border-blue-200 !bg-cyan-500/10"
             >
               {temporaryAccessBusy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
               Grant Temporary Access
             </button>
           </div>
 
-          <div className="rounded-2xl border border-gray-800 bg-[#0a0f17]/70 overflow-hidden">
-            <div className="grid grid-cols-[minmax(180px,1.2fr)_minmax(160px,1fr)_140px_120px_130px] gap-3 px-4 py-3 border-b border-gray-800 text-[10px] uppercase tracking-[0.16em] text-gray-500 font-black">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
+            <div className="grid grid-cols-[minmax(180px,1.2fr)_minmax(160px,1fr)_140px_120px_130px] gap-3 px-4 py-3 border-b border-slate-200 text-[10px] uppercase tracking-[0.16em] text-slate-500 font-black">
               <span>Member</span>
               <span>Pass Window</span>
               <span>Status</span>
@@ -1207,26 +1264,26 @@ export default function AdminPanel() {
                     >
                       <div>
                         <p className="text-sm font-semibold text-gray-100 truncate">{row.name}</p>
-                        <p className="text-[11px] text-gray-500 truncate">{row.collegeId || 'NO-ID'} • {row.email || 'No email'}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{row.collegeId || 'NO-ID'} • {row.email || 'No email'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-200">Expires {expiryLabel}</p>
-                        <p className="text-[11px] text-gray-500">{temp.remainingMinutes || 0} min left</p>
+                        <p className="text-xs text-slate-700">Expires {expiryLabel}</p>
+                        <p className="text-[11px] text-slate-500">{temp.remainingMinutes || 0} min left</p>
                       </div>
                       <div>
                         <span
-                          className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-lg border ${temp.isActive ? 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10' : 'text-rose-300 border-rose-500/40 bg-rose-500/10'}`}
+                          className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-lg border ${temp.isActive ? 'text-emerald-600 border-emerald-200 bg-emerald-500/10' : 'text-red-600 border-red-200 bg-rose-500/10'}`}
                         >
                           {temp.isActive ? 'Active' : 'Expired'}
                         </span>
                       </div>
-                      <div className="text-xs text-cyan-200 uppercase tracking-wider">{temp.mode || 'read-only'}</div>
+                      <div className="text-xs text-cyan-700 uppercase tracking-wider">{temp.mode || 'read-only'}</div>
                       <div className="text-right">
                         <button
                           type="button"
                           onClick={() => handleRevokeTemporaryAccess(row._id)}
                           disabled={temporaryRevokeBusyId === String(row._id)}
-                          className="btn btn-danger !px-3 !py-1.5 !text-[10px]"
+                          className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !px-3 !py-1.5 !text-[10px]"
                         >
                           {temporaryRevokeBusyId === String(row._id) ? <Loader2 size={12} className="animate-spin" /> : 'Revoke'}
                         </button>
@@ -1253,7 +1310,7 @@ export default function AdminPanel() {
           <select
             value={selectedResetUserId}
             onChange={(e) => setSelectedResetUserId(e.target.value)}
-            className="ui-input [color-scheme:dark]"
+            className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 outline-none shadow-sm text-sm focus:border-blue-400"
           >
             <option value="">Select user for reset code</option>
             {resetEligibleUsers.map((u) => (
@@ -1270,7 +1327,7 @@ export default function AdminPanel() {
               handleGenerateResetCode(selectedResetUserId, selected?.name);
             }}
             disabled={!selectedResetUserId || resetLoading}
-            className="btn btn-secondary !px-5 !py-3"
+            className="px-5 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors flex items-center justify-center gap-2"
           >
             {resetLoading ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
             Generate Reset Code
@@ -1278,26 +1335,26 @@ export default function AdminPanel() {
         </div>
 
         {resetCodeData?.resetCode && (
-          <div className="mt-4 border border-gray-700 rounded-xl p-4 bg-[#0a0f17]/60">
-            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">
+          <div className="mt-4 border border-slate-200 rounded-xl p-4 bg-slate-50 shadow-sm">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black">
               Reset code for {resetCodeData.userName}
               {resetCodeData.collegeId ? ` (${resetCodeData.collegeId})` : ''}
             </p>
             <div className="mt-2 flex items-center gap-2">
-              <code className="px-3 py-2 rounded-lg bg-black/40 border border-gray-700 text-cyan-200 font-mono text-lg tracking-[0.25em]">
+              <code className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-blue-700 font-mono text-lg tracking-[0.25em] shadow-inner">
                 {resetCodeData.resetCode}
               </code>
               <button
                 type="button"
                 onClick={copyResetCode}
                 aria-label="Copy reset code"
-                className="p-2 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-cyan-500/40"
+                className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-colors bg-white shadow-sm"
                 title="Copy reset code"
               >
                 {resetCopied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
               </button>
             </div>
-            <p className="mt-2 text-[10px] uppercase tracking-widest text-amber-300">
+            <p className="mt-2 text-[10px] uppercase tracking-widest text-amber-600">
               Valid for {resetCodeData.validForMinutes} minutes. Share securely with the user.
             </p>
           </div>
@@ -1314,18 +1371,18 @@ export default function AdminPanel() {
         >
           <div className="space-y-3">
             {pendingActions.map((action) => (
-              <div key={action._id} className="bg-[#0a0f17]/70 border border-gray-700 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div key={action._id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm">
                 <div>
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-bold text-slate-800">
                     {action.type === 'ADMIN_DELETE' ? 'Delete admin account' : `Demote admin to ${action.payload?.newRole || 'User'}`}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-slate-500">
                     Target: {action.targetUser?.name} ({action.targetUser?.email}) • Approvals: {action.approvals?.length || 0}/3
                   </p>
                 </div>
                 <button
                   onClick={() => handleApproveAction(action._id)}
-                  className="btn btn-secondary !text-amber-200 !border-amber-500/35 !bg-amber-500/10"
+                  className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-sm font-semibold transition-colors"
                 >
                   Approve
                 </button>
@@ -1345,11 +1402,11 @@ export default function AdminPanel() {
         badge={`${filteredApplications.length} visible`}
         className="section-motion section-motion-delay-2"
         actions={(
-          <div className="ui-toolbar-sticky flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-slate-200 py-2 flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <select
               value={appFilter}
               onChange={(e) => setAppFilter(e.target.value)}
-              className="ui-input !text-xs !py-2 !px-3 [color-scheme:dark]"
+              className="px-3 py-2 text-xs border border-slate-200 bg-white rounded-lg outline-none text-slate-800 shadow-sm"
             >
               <option value="All">All Statuses</option>
               {APPLICATION_STATUSES.map((status) => (
@@ -1359,13 +1416,13 @@ export default function AdminPanel() {
               ))}
             </select>
             <div className="relative">
-              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 value={appSearch}
                 onChange={(e) => setAppSearch(e.target.value)}
                 placeholder="Search applicants..."
                 aria-label="Search applicants"
-                className="ui-input !text-xs !pl-10 !py-2 !pr-3 min-w-[220px]"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 !text-xs !pl-10 !py-2 !pr-3 min-w-[220px]"
                 style={{ paddingLeft: '2.75rem' }}
               />
             </div>
@@ -1376,11 +1433,11 @@ export default function AdminPanel() {
           <button
             type="button"
             onClick={toggleSelectAllApplications}
-            className="btn btn-ghost !px-3 !py-1.5"
+            className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !px-3 !py-1.5"
           >
             {allFilteredApplicationsSelected ? 'Unselect All' : 'Select All'}
           </button>
-          <span className="text-[11px] text-gray-500 uppercase tracking-widest">
+          <span className="text-[11px] text-slate-500 uppercase tracking-widest">
             {selectedApplicationIds.length} selected
           </span>
         </div>
@@ -1399,18 +1456,18 @@ export default function AdminPanel() {
                     if (draggingAppId) moveApplicationToLane(draggingAppId, lane.id);
                     setDraggingAppId('');
                   }}
-                  className="border border-gray-800 rounded-2xl p-3 flex flex-col min-h-[560px] bg-[#080d14]/76"
+                  className="border border-slate-200 rounded-2xl p-3 flex flex-col min-h-[560px] bg-white shadow-sm border border-slate-200"
                 >
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.16em] text-gray-500 font-black">{lane.label}</p>
-                      <p className="text-xs text-gray-400 mt-1">{applicationsByLane[lane.id]?.length || 0} candidates</p>
+                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500 font-black">{lane.label}</p>
+                      <p className="text-xs text-slate-600 mt-1">{applicationsByLane[lane.id]?.length || 0} candidates</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleBulkMoveApplications(lane.id)}
                       disabled={selectedApplicationIds.length === 0 || bulkRecruitmentBusy}
-                      className="btn btn-secondary !text-[10px] !px-2.5 !py-1.5 !tracking-widest"
+                      className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-[10px] !px-2.5 !py-1.5 !tracking-widest"
                     >
                       {bulkRecruitmentBusy ? 'Moving...' : 'Move Selected'}
                     </button>
@@ -1423,7 +1480,7 @@ export default function AdminPanel() {
                         draggable
                         onDragStart={() => setDraggingAppId(String(app._id))}
                         onDragEnd={() => setDraggingAppId('')}
-                        className="border border-gray-800 rounded-xl p-3 space-y-2 bg-[#0a111a]/72 cursor-grab active:cursor-grabbing pro-row-glide"
+                        className="border border-slate-200 rounded-xl p-3 space-y-2 bg-white shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing pro-row-glide"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <label className="inline-flex items-center gap-2">
@@ -1440,12 +1497,12 @@ export default function AdminPanel() {
                         </div>
 
                         <div>
-                          <p className="text-sm font-bold text-white">{app.fullName}</p>
-                          <p className="text-[11px] text-gray-500">{app.email}</p>
+                          <p className="text-sm font-bold text-slate-900">{app.fullName}</p>
+                          <p className="text-[11px] text-slate-500">{app.email}</p>
                           <p className="text-[11px] text-gray-600">{app.phone}</p>
                         </div>
 
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider flex flex-wrap gap-2">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider flex flex-wrap gap-2">
                           <span>Stage {app.stage || lane.stage}</span>
                           <span>•</span>
                           <span>Year {app.year || 'N/A'}</span>
@@ -1461,7 +1518,7 @@ export default function AdminPanel() {
                           <select
                             value={app.assignedTo?._id || ''}
                             onChange={(e) => handleAppAssign(app._id, e.target.value || null)}
-                            className="ui-input !rounded-lg !px-2.5 !py-2 !text-[10px] !uppercase !tracking-widest [color-scheme:dark]"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 !rounded-lg !px-2.5 !py-2 !text-[10px] !uppercase !tracking-widest "
                           >
                             <option value="">Unassigned</option>
                             {adminUsers.map((u) => (
@@ -1473,7 +1530,7 @@ export default function AdminPanel() {
                           <select
                             value={app.status}
                             onChange={(e) => handleAppStatusChange(app._id, e.target.value)}
-                            className="ui-input !rounded-lg !px-2.5 !py-2 !text-[10px] !uppercase !tracking-widest [color-scheme:dark]"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 !rounded-lg !px-2.5 !py-2 !text-[10px] !uppercase !tracking-widest "
                           >
                             {APPLICATION_STATUSES.map((status) => (
                               <option key={status} value={status}>
@@ -1486,13 +1543,13 @@ export default function AdminPanel() {
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => handleAppNote(app._id)}
-                            className="btn btn-ghost !text-[10px] !px-2.5 !py-1.5"
+                            className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-[10px] !px-2.5 !py-1.5"
                           >
                             Note
                           </button>
                           <button
                             onClick={() => handleSendAppInvite(app._id)}
-                            className="btn btn-secondary !text-[10px] !px-2.5 !py-1.5 !text-emerald-200 !border-emerald-500/35 !bg-emerald-500/10"
+                            className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-[10px] !px-2.5 !py-1.5 !text-emerald-700 !border-emerald-200 !bg-emerald-500/10"
                           >
                             Invite
                           </button>
@@ -1500,7 +1557,7 @@ export default function AdminPanel() {
                       </div>
                     ))}
                     {(applicationsByLane[lane.id] || []).length === 0 && (
-                      <div className="text-[11px] text-gray-600 border border-dashed border-gray-800 rounded-lg p-3 text-center">
+                      <div className="text-[11px] text-gray-600 border border-dashed border-slate-200 rounded-lg p-3 text-center">
                         No candidates in this lane.
                       </div>
                     )}
@@ -1512,11 +1569,11 @@ export default function AdminPanel() {
         )}
 
         {!appLoading && rejectedApplications.length > 0 && (
-          <div className="border border-rose-500/25 rounded-xl p-3 mt-5">
-            <p className="text-xs uppercase tracking-[0.16em] text-rose-300 font-black mb-2">Rejected Candidates</p>
+          <div className="border border-red-200 rounded-xl p-3 mt-5">
+            <p className="text-xs uppercase tracking-[0.16em] text-red-600 font-black mb-2">Rejected Candidates</p>
             <div className="flex flex-wrap gap-2">
               {rejectedApplications.map((app) => (
-                <span key={app._id} className="text-[11px] border border-rose-500/30 text-rose-200 px-2.5 py-1 rounded-lg">
+                <span key={app._id} className="text-[11px] border border-red-200 text-red-600 px-2.5 py-1 rounded-lg">
                   {app.fullName}
                 </span>
               ))}
@@ -1552,7 +1609,7 @@ export default function AdminPanel() {
               value={broadcastForm.title}
               onChange={(e) => setBroadcastForm((prev) => ({ ...prev, title: e.target.value }))}
               placeholder="Announcement title"
-              className="ui-input"
+              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
               maxLength={140}
             />
             <textarea
@@ -1560,14 +1617,14 @@ export default function AdminPanel() {
               onChange={(e) => setBroadcastForm((prev) => ({ ...prev, message: e.target.value }))}
               placeholder="Announcement message"
               rows={4}
-              className="ui-input resize-none"
+              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none"
               maxLength={1600}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <select
                 value={broadcastForm.role}
                 onChange={(e) => setBroadcastForm((prev) => ({ ...prev, role: e.target.value }))}
-                className="ui-input !text-xs [color-scheme:dark]"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 !text-xs "
               >
                 <option value="all">All Members</option>
                 <option value="Admin">Admins</option>
@@ -1578,7 +1635,7 @@ export default function AdminPanel() {
               <select
                 value={broadcastForm.type}
                 onChange={(e) => setBroadcastForm((prev) => ({ ...prev, type: e.target.value }))}
-                className="ui-input !text-xs [color-scheme:dark]"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 !text-xs "
               >
                 <option value="info">Info</option>
                 <option value="success">Success</option>
@@ -1590,13 +1647,13 @@ export default function AdminPanel() {
                 value={broadcastForm.link}
                 onChange={(e) => setBroadcastForm((prev) => ({ ...prev, link: e.target.value }))}
                 placeholder="/dashboard"
-                className="ui-input !text-xs"
+                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 !text-xs"
               />
             </div>
             <button
               type="submit"
               disabled={broadcastBusy}
-              className="btn btn-secondary !text-cyan-100 !border-cyan-500/40 !bg-cyan-500/10"
+              className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !text-blue-700 !border-blue-200 !bg-cyan-500/10"
             >
               {broadcastBusy ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
               Send Broadcast
@@ -1618,7 +1675,7 @@ export default function AdminPanel() {
             <button
               type="button"
               onClick={loadAuditLogs}
-              className="btn btn-ghost !px-3 !py-1.5"
+              className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !px-3 !py-1.5"
             >
               Refresh
             </button>
@@ -1629,28 +1686,28 @@ export default function AdminPanel() {
           ) : (
             <div className="max-h-[420px] overflow-auto pr-1">
               <table className="w-full text-left border-collapse min-w-[980px]">
-                <thead className="sticky top-0 bg-[#0b111a]/95 border-b border-gray-800 z-10">
+                <thead className="sticky top-0 bg-white shadow-sm border border-slate-200 border-b border-slate-200 z-10">
                   <tr>
-                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-gray-500">Name</th>
-                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-gray-500">Action</th>
-                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-gray-500">Time</th>
-                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-gray-500">Year</th>
-                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-gray-500">Role</th>
-                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-gray-500">Entity</th>
+                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-slate-500">Name</th>
+                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-slate-500">Action</th>
+                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-slate-500">Time</th>
+                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-slate-500">Year</th>
+                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-slate-500">Role</th>
+                    <th className="px-3 py-2 text-[11px] uppercase tracking-widest text-slate-500">Entity</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60">
                   {auditRows.map((row) => (
-                    <tr key={row._id} className="bg-[#0a0f17]/55 hover:bg-[#0f1826]/60">
+                    <tr key={row._id} className="bg-slate-50 hover:bg-white shadow-sm border border-slate-200">
                       <td className="px-3 py-2.5 text-sm text-gray-100">
                         <div className="font-semibold">{row.actor?.name || 'System'}</div>
-                        <div className="text-[11px] text-gray-500">{row.actor?.collegeId || 'N/A'}</div>
+                        <div className="text-[11px] text-slate-500">{row.actor?.collegeId || 'N/A'}</div>
                       </td>
-                      <td className="px-3 py-2.5 text-[12px] text-cyan-200 font-semibold">{row.action}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-gray-300">{new Date(row.createdAt).toLocaleString()}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-gray-300">{Number.isFinite(Number(row.actor?.year)) ? row.actor.year : 'N/A'}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-gray-300">{row.actor?.role || 'N/A'}</td>
-                      <td className="px-3 py-2.5 text-[11px] text-gray-400">{row.entityType} {row.entityId ? `• ${row.entityId}` : ''}</td>
+                      <td className="px-3 py-2.5 text-[12px] text-cyan-700 font-semibold">{row.action}</td>
+                      <td className="px-3 py-2.5 text-[12px] text-slate-700">{new Date(row.createdAt).toLocaleString()}</td>
+                      <td className="px-3 py-2.5 text-[12px] text-slate-700">{Number.isFinite(Number(row.actor?.year)) ? row.actor.year : 'N/A'}</td>
+                      <td className="px-3 py-2.5 text-[12px] text-slate-700">{row.actor?.role || 'N/A'}</td>
+                      <td className="px-3 py-2.5 text-[11px] text-slate-600">{row.entityType} {row.entityId ? `• ${row.entityId}` : ''}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1664,24 +1721,24 @@ export default function AdminPanel() {
 
       {adminTab === 'users' && (
         <>
-          <div className="ui-table-shell section-motion section-motion-delay-3 bg-[#090e15]/75">
-            <div className="ui-toolbar-sticky p-5 md:p-6 border-b border-gray-800 flex flex-col gap-4">
+          <div className="ui-table-shell section-motion section-motion-delay-3 bg-white shadow-sm border border-slate-200">
+            <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-slate-200 py-2 p-5 md:p-6 border-b border-slate-200 flex flex-col gap-4">
               <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <UserCheck className="text-blue-400" size={22} />
                   <div>
-                    <h3 className="text-xl font-black text-white">Member Directory</h3>
-                    <p className="text-xs text-gray-500">Sortable table with approval and role controls.</p>
+                    <h3 className="text-xl font-black text-slate-900">Member Directory</h3>
+                    <p className="text-xs text-slate-500">Sortable table with approval and role controls.</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-gray-700 text-gray-300">
+                  <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-slate-300 text-slate-700">
                     Total {users.length}
                   </span>
-                  <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-emerald-500/35 text-emerald-200 bg-emerald-500/10">
+                  <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-500/10">
                     Approved {approvalSummary.approved}
                   </span>
-                  <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-amber-500/35 text-amber-200 bg-amber-500/10">
+                  <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border border-amber-200 text-amber-700 bg-amber-500/10">
                     Pending {approvalSummary.pending}
                   </span>
                 </div>
@@ -1690,34 +1747,43 @@ export default function AdminPanel() {
               <div className="w-full flex flex-col gap-2">
                 <div className="flex flex-col lg:flex-row gap-2">
                   <div className="relative flex-1 min-w-[220px]">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                     <input
                       type="text"
                       placeholder="Search name, reg no, email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="ui-input pl-10"
+                      className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 pl-10"
                       style={{ paddingLeft: '2.75rem' }}
                     />
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
+                      onClick={() => setBulkEmailModalOpen(true)}
+                      disabled={selectedUserIds.length === 0}
+                      className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
+                    >
+                      <Mail size={13} />
+                      Email Selected
+                    </button>
+                    <button
+                      type="button"
                       onClick={handleBulkApproveUsers}
                       disabled={bulkBusy || selectedUserIds.length === 0}
-                      className="btn btn-secondary"
+                      className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                     >
                       {bulkBusy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
                       Approve Selected
                     </button>
-                    <button type="button" onClick={handleExportUsers} className="btn btn-ghost">
+                    <button type="button" onClick={handleExportUsers} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">
                       <Download size={13} />
                       Export CSV
                     </button>
                     <button
                       type="button"
                       onClick={() => setColumnChooserOpen((prev) => !prev)}
-                      className="btn btn-ghost"
+                      className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
                     >
                       Columns
                     </button>
@@ -1740,8 +1806,8 @@ export default function AdminPanel() {
                       onClick={() => setUserQuickFilter(id)}
                       className={`px-2.5 py-1.5 rounded-lg text-[10px] uppercase tracking-widest border transition-colors ${
                         userQuickFilter === id
-                          ? 'border-cyan-500/50 text-cyan-100 bg-cyan-500/10'
-                          : 'border-gray-700 text-gray-400 hover:text-gray-200'
+                          ? 'border-blue-200 text-blue-700 bg-cyan-500/10'
+                          : 'border-slate-300 text-slate-600 hover:text-slate-700'
                       }`}
                     >
                       {label}
@@ -1750,13 +1816,13 @@ export default function AdminPanel() {
                 </div>
 
                 {columnChooserOpen && (
-                  <div className="border border-gray-800 rounded-xl p-3 bg-[#0a0f17]/70 space-y-3">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500 font-black">Column Chooser</p>
+                  <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-black">Column Chooser</p>
                     <div className="flex flex-wrap gap-2">
                       {USER_TABLE_COLUMNS.map((column) => (
                         <label
                           key={column.id}
-                          className="inline-flex items-center gap-2 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-gray-300"
+                          className="inline-flex items-center gap-2 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700"
                         >
                           <input
                             type="checkbox"
@@ -1772,20 +1838,20 @@ export default function AdminPanel() {
                         value={newViewName}
                         onChange={(e) => setNewViewName(e.target.value)}
                         placeholder="Save current view as..."
-                        className="ui-input"
+                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400"
                       />
-                      <button type="button" onClick={saveCurrentUserView} className="btn btn-secondary">
+                      <button type="button" onClick={saveCurrentUserView} className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2">
                         Save View
                       </button>
                     </div>
                     {savedViews.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {savedViews.map((view) => (
-                          <div key={view.id} className="inline-flex items-center border border-gray-700 rounded-lg overflow-hidden">
+                          <div key={view.id} className="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden">
                             <button
                               type="button"
                               onClick={() => applyUserView(view)}
-                              className="px-2.5 py-1.5 text-xs text-gray-200 hover:bg-white/[0.04]"
+                              className="px-2.5 py-1.5 text-xs text-slate-700 hover:bg-white/[0.04]"
                             >
                               {view.name}
                             </button>
@@ -1793,7 +1859,7 @@ export default function AdminPanel() {
                               type="button"
                               onClick={() => deleteUserView(view.id)}
                               aria-label={`Delete saved view ${view.name}`}
-                              className="px-2 py-1.5 text-xs text-gray-500 hover:text-rose-300 hover:bg-rose-500/10"
+                              className="px-2 py-1.5 text-xs text-slate-500 hover:text-red-600 hover:bg-red-50"
                             >
                               ×
                             </button>
@@ -1807,14 +1873,14 @@ export default function AdminPanel() {
             </div>
 
             {selectedUserIds.length > 0 && (
-              <div className="px-5 py-2 border-b border-gray-800 text-xs text-cyan-200 uppercase tracking-widest">
+              <div className="px-5 py-2 border-b border-slate-200 text-xs text-cyan-700 uppercase tracking-widest">
                 {selectedUserIds.length} user(s) selected
               </div>
             )}
 
             <div className="overflow-x-auto max-h-[72vh]">
               <table className="w-full text-left border-collapse min-w-[860px]">
-                <thead className="ui-table-head sticky top-0 z-10 bg-[#090d13]/95">
+                <thead className="ui-table-head sticky top-0 z-10 bg-white shadow-sm border border-slate-200">
                   <tr>
                     <th className="p-4 w-10 text-center">
                       <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllUsers} />
@@ -1863,21 +1929,21 @@ export default function AdminPanel() {
                       {visibleColumns.includes('member') && (
                         <td className="p-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-[#0a0a0c] border border-gray-800 flex items-center justify-center font-black text-blue-500">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-slate-200 flex items-center justify-center font-black text-blue-600">
                               {u.name ? u.name[0] : '?'}
                             </div>
                             <div className="space-y-1">
-                              <p className="font-black text-gray-100 text-sm tracking-tight">{u.name}</p>
+                              <p className="font-black text-slate-900 text-sm tracking-tight">{u.name}</p>
                               <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1 text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                                <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                                   <Fingerprint size={10} className="text-blue-500" /> {u.collegeId || 'NO-REG'}
                                 </span>
                                 <span className="text-[10px] text-gray-600">{u.email || 'No email'}</span>
-                                <span className={`text-[10px] font-black uppercase tracking-[0.18em] px-2 py-1 rounded-lg border ${u.idCardEnabled !== false ? 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10' : 'text-rose-300 border-rose-500/40 bg-rose-500/10'}`}>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.18em] px-2 py-1 rounded-lg border ${u.idCardEnabled !== false ? 'text-emerald-600 border-emerald-200 bg-emerald-500/10' : 'text-red-600 border-red-200 bg-rose-500/10'}`}>
                                   Card {u.idCardEnabled !== false ? 'On' : 'Off'}
                                 </span>
                                 {u.temporaryAccess?.isActive ? (
-                                  <span className="text-[10px] font-black uppercase tracking-[0.18em] px-2 py-1 rounded-lg border text-amber-200 border-amber-500/35 bg-amber-500/10">
+                                  <span className="text-[10px] font-black uppercase tracking-[0.18em] px-2 py-1 rounded-lg border text-amber-700 border-amber-200 bg-amber-500/10">
                                     Temp Pass {Math.max(0, Number(u.temporaryAccess?.remainingMinutes || 0))}m
                                   </span>
                                 ) : null}
@@ -1891,7 +1957,7 @@ export default function AdminPanel() {
                           <select
                             value={u.role}
                             onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                            className="bg-[#0a0a0c] border border-gray-800 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl px-3 py-2 outline-none focus:border-blue-500 text-blue-300"
+                            className="bg-white border border-slate-200 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl px-3 py-2 outline-none focus:border-blue-500 text-blue-700 shadow-sm"
                           >
                             <option value="User">User</option>
                             <option value="Head">Head</option>
@@ -1902,7 +1968,7 @@ export default function AdminPanel() {
                       )}
                       {visibleColumns.includes('year') && (
                         <td className="p-4 text-center">
-                          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-gray-400">
+                          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-slate-600">
                             <GraduationCap size={12} className="text-amber-400" /> {u.year || 'N/A'}
                           </span>
                         </td>
@@ -1912,15 +1978,19 @@ export default function AdminPanel() {
                           <div className="flex items-center justify-center gap-2">
                             <span className={`text-[10px] font-black uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-xl border ${
                               u.approvalStatus === 'Approved'
-                                ? 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10'
+                                ? 'text-emerald-400 border-emerald-200 bg-emerald-500/10'
                                 : u.approvalStatus === 'Rejected'
                                   ? 'text-red-400 border-red-500/40 bg-red-500/10'
-                                  : 'text-amber-400 border-amber-500/40 bg-amber-500/10'
+                                  : 'text-amber-400 border-amber-200 bg-amber-500/10'
                             }`}>
                               {u.approvalStatus || (u.isVerified ? 'Approved' : 'Pending')}
                             </span>
-                            <button onClick={() => handleApprovalChange(u._id, 'Approved')} className="btn btn-ghost !px-2 !py-1">Approve</button>
-                            <button onClick={() => handleApprovalChange(u._id, 'Rejected')} className="btn btn-danger !px-2 !py-1">Reject</button>
+                            {(u.approvalStatus || (u.isVerified ? 'Approved' : 'Pending')) !== 'Approved' && (
+                              <>
+                                <button onClick={() => handleApprovalChange(u._id, 'Approved')} className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !px-2 !py-1">Approve</button>
+                                <button onClick={() => handleApprovalChange(u._id, 'Rejected')} className="px-4 py-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 !px-2 !py-1">Reject</button>
+                              </>
+                            )}
                           </div>
                         </td>
                       )}
@@ -1930,7 +2000,7 @@ export default function AdminPanel() {
                             <button
                               aria-label="Toggle ID card visibility"
                               onClick={() => handleIdCardToggle(u._id, u.idCardEnabled !== false)}
-                              className={`px-3 py-2 rounded-xl transition-all text-[11px] font-black uppercase tracking-[0.12em] border ${u.idCardEnabled !== false ? 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20' : 'text-cyan-200 border-cyan-500/35 bg-cyan-500/10 hover:bg-cyan-500/20'}`}
+                              className={`px-3 py-2 rounded-xl transition-all text-[11px] font-black uppercase tracking-[0.12em] border ${u.idCardEnabled !== false ? 'text-emerald-600 border-emerald-200 bg-emerald-500/10 hover:bg-emerald-50' : 'text-cyan-700 border-blue-200 bg-cyan-500/10 hover:bg-blue-50'}`}
                               title={u.idCardEnabled !== false ? 'Disable ID card' : 'Enable ID card'}
                             >
                               {u.idCardEnabled !== false ? 'Deactivate Card' : 'Activate Card'}
@@ -1944,7 +2014,7 @@ export default function AdminPanel() {
                                     ? handleRevokeTemporaryAccess(u._id)
                                     : handleQuickTemporaryAccessGrant(u._id)
                                 }
-                                className={`px-3 py-2 rounded-xl transition-all text-[11px] font-black uppercase tracking-[0.12em] border ${u.temporaryAccess?.isActive ? 'text-rose-200 border-rose-500/35 bg-rose-500/10 hover:bg-rose-500/20' : 'text-amber-200 border-amber-500/35 bg-amber-500/10 hover:bg-amber-500/20'}`}
+                                className={`px-3 py-2 rounded-xl transition-all text-[11px] font-black uppercase tracking-[0.12em] border ${u.temporaryAccess?.isActive ? 'text-red-600 border-red-200 bg-rose-500/10 hover:bg-red-50' : 'text-amber-700 border-amber-200 bg-amber-500/10 hover:bg-amber-50'}`}
                                 title={u.temporaryAccess?.isActive ? 'Revoke temporary pass' : 'Grant 8h temporary pass'}
                               >
                                 {u.temporaryAccess?.isActive ? 'Revoke Pass' : 'Grant 8h Pass'}
@@ -1953,7 +2023,7 @@ export default function AdminPanel() {
                             <button
                               aria-label="Generate password reset code"
                               onClick={() => handleGenerateResetCode(u._id, u.name)}
-                              className="p-2 text-gray-500 hover:text-blue-300 hover:bg-blue-500/10 rounded-xl transition-all"
+                              className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                               title="Generate password reset code"
                             >
                               <KeyRound size={16} />
@@ -1976,6 +2046,28 @@ export default function AdminPanel() {
                   ))}
                 </tbody>
               </table>
+              
+              {usersPage < usersTotalPages && (
+                <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-center">
+                  <button
+                    onClick={loadMoreUsers}
+                    disabled={usersLoadingMore}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200 text-slate-700 shadow-sm hover:shadow-md hover:border-slate-300 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
+                  >
+                    {usersLoadingMore ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin text-slate-400" />
+                        <span>Loading more...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown size={16} className="text-blue-500" />
+                        <span>Load More Users ({usersPage} / {usersTotalPages})</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
 
               {sortedUsers.length === 0 && !loading && (
                 <div className="p-8">
@@ -2006,7 +2098,7 @@ export default function AdminPanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-[#03040a]/80 backdrop-blur-sm px-4 py-8 overflow-y-auto"
+            className="fixed inset-0 z-[120] bg-white shadow-sm border border-slate-200 backdrop-blur-sm px-4 py-8 overflow-y-auto"
             onClick={() => closeDeleteDialog()}
           >
             <motion.div
@@ -2029,7 +2121,7 @@ export default function AdminPanel() {
                     <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-300/85">
                       Destructive action
                     </p>
-                    <h3 id="delete-user-title" className="text-lg md:text-xl font-black tracking-tight text-white">
+                    <h3 id="delete-user-title" className="text-lg md:text-xl font-black tracking-tight text-slate-900">
                       Confirm User Removal
                     </h3>
                   </div>
@@ -2038,7 +2130,7 @@ export default function AdminPanel() {
                   type="button"
                   onClick={() => closeDeleteDialog()}
                   disabled={deleteDialog.submitting}
-                  className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-40"
+                  className="p-2 rounded-lg text-slate-500 hover:text-slate-900 pro-hover-lift transition-colors disabled:opacity-40"
                   aria-label="Close delete dialog"
                 >
                   <X size={16} />
@@ -2046,35 +2138,35 @@ export default function AdminPanel() {
               </div>
 
               <div className="px-6 md:px-8 py-6 space-y-5">
-                <p className="text-sm leading-relaxed text-gray-300">
+                <p className="text-sm leading-relaxed text-slate-700">
                   This permanently removes the member account and cannot be undone. To continue, type the exact
                   verification phrase below.
                 </p>
 
                 <div className="grid gap-3 sm:grid-cols-3 text-xs">
-                  <div className="rounded-xl border border-gray-800 px-3 py-2">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500">Name</p>
+                  <div className="rounded-xl border border-slate-200 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Name</p>
                     <p className="mt-1 font-bold text-gray-100">{deleteDialog.user?.name || 'Unknown User'}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-800 px-3 py-2">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500">College ID</p>
+                  <div className="rounded-xl border border-slate-200 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">College ID</p>
                     <p className="mt-1 font-bold text-gray-100">{deleteDialog.user?.collegeId || 'N/A'}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-800 px-3 py-2">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500">Role</p>
+                  <div className="rounded-xl border border-slate-200 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Role</p>
                     <p className="mt-1 font-bold text-gray-100">{deleteDialog.user?.role || 'User'}</p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-gray-400">Required Phrase</p>
-                  <div className="rounded-xl border border-gray-700 bg-[#05070c] px-4 py-3 text-sm font-mono text-red-200 break-all">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-600">Required Phrase</p>
+                  <div className="rounded-xl border border-slate-300 bg-[#05070c] px-4 py-3 text-sm font-mono text-red-200 break-all">
                     {requiredDeletePhrase || 'remove user'}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="delete-phrase-input" className="text-[10px] uppercase tracking-[0.22em] text-gray-400">
+                  <label htmlFor="delete-phrase-input" className="text-[10px] uppercase tracking-[0.22em] text-slate-600">
                     Type Phrase To Confirm
                   </label>
                   <input
@@ -2089,7 +2181,7 @@ export default function AdminPanel() {
                       }))
                     }
                     placeholder={requiredDeletePhrase || 'remove username'}
-                    className="w-full rounded-xl border border-gray-700 bg-transparent px-4 py-3 text-sm text-white outline-none transition-colors focus:border-red-400/60"
+                    className="w-full rounded-xl border border-slate-300 bg-transparent px-4 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-red-400/60"
                     autoFocus
                   />
                   {deleteDialog.error && (
@@ -2098,12 +2190,12 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-6 md:px-8 py-5 border-t border-gray-800">
+              <div className="flex items-center justify-end gap-3 px-6 md:px-8 py-5 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => closeDeleteDialog()}
                   disabled={deleteDialog.submitting}
-                  className="px-4 py-2 rounded-xl border border-gray-700 text-xs font-black uppercase tracking-[0.18em] text-gray-300 hover:text-white hover:border-gray-500 transition-colors disabled:opacity-40"
+                  className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase tracking-[0.18em] text-slate-700 hover:text-slate-900 hover:border-gray-500 transition-colors disabled:opacity-40"
                 >
                   Cancel
                 </button>
@@ -2115,6 +2207,79 @@ export default function AdminPanel() {
                 >
                   {deleteDialog.submitting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                   Remove User
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {bulkEmailModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-50 backdrop-blur-sm px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-[#0a0f17] shadow-2xl flex flex-col"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-white border border-slate-200 shadow-sm">
+                <h3 className="text-lg font-black gradient-text-blue brand-title">Email Selected Users</h3>
+                <button
+                  type="button"
+                  onClick={() => setBulkEmailModalOpen(false)}
+                  className="text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-cyan-700 font-medium tracking-wide bg-cyan-500/10 border border-blue-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
+                  <Mail size={14} /> {selectedUserIds.length} Recipient(s) Selected
+                </p>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">Subject</label>
+                  <input
+                    type="text"
+                    value={bulkEmailSubject}
+                    onChange={(e) => setBulkEmailSubject(e.target.value)}
+                    placeholder="Enter email subject"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 bg-slate-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">Message (HTML Supported)</label>
+                  <textarea
+                    rows={6}
+                    value={bulkEmailMessage}
+                    onChange={(e) => setBulkEmailMessage(e.target.value)}
+                    placeholder="Type your message here... <br>, <b>, <i> tags are supported."
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 outline-none shadow-sm focus:border-blue-400 resize-none bg-slate-50 font-mono text-sm"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-white border border-slate-200 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setBulkEmailModalOpen(false)}
+                  disabled={bulkEmailSending}
+                  className="px-4 py-2 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-100 text-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkEmailSubmit}
+                  disabled={bulkEmailSending || !bulkEmailSubject || !bulkEmailMessage}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 shadow-md shadow-blue-500/20"
+                >
+                  {bulkEmailSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Send Bulk Email
                 </button>
               </div>
             </motion.div>

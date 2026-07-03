@@ -1,34 +1,77 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { login, register, sendPasswordResetOtp, resetPasswordWithOtp, resetPasswordWithCode } from '../api';
+import { 
+  login, register, sendPasswordResetOtp, resetPasswordWithOtp, 
+  resetPasswordWithCode, requestMagicLink, verifyMagicLink, verifySignupOtp 
+} from '../api';
 import { 
   AlertCircle, Loader2, User, Mail, 
-  Lock, Ticket, ArrowRight 
+  Lock, Ticket, ArrowRight, CheckCircle2, Wand2, KeyRound 
 } from 'lucide-react';
 
 export default function Auth() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const magicToken = searchParams.get('token');
+
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  const [mode, setMode] = useState('login');
+  const [mode, setMode] = useState('login'); // login | signup | signupVerify | forgot
   const [loading, setLoading] = useState(false);
+  const [verifyingToken, setVerifyingToken] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [forgotMethod, setForgotMethod] = useState('emailOtp');
+  const [magicLinkMode, setMagicLinkMode] = useState(false);
+
   const isLogin = mode === 'login';
   const isForgot = mode === 'forgot';
+  const isSignup = mode === 'signup';
+  const isSignupVerify = mode === 'signupVerify';
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    collegeId: '',
-    inviteCode: '',
-    otp: '',
-    resetCode: '',
-    newPassword: ''
+    name: '', email: '', password: '', collegeId: '',
+    inviteCode: '', otp: '', resetCode: '', newPassword: ''
   });
+
+  const getPasswordStrength = (pass) => {
+    let score = 0;
+    if (!pass) return score;
+    if (pass.length > 6) score += 1;
+    if (pass.length >= 10) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+    return Math.min(4, score);
+  };
+  const strength = getPasswordStrength(formData.password);
+
+  useEffect(() => {
+    if (location.pathname === '/auth/magic-link' && magicToken) {
+      handleMagicLinkVerification(magicToken);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, magicToken]);
+
+  const handleMagicLinkVerification = async (token) => {
+    setVerifyingToken(true);
+    setError('');
+    try {
+      const response = await verifyMagicLink({ token });
+      localStorage.setItem('profile', JSON.stringify(response.data));
+      navigate('/dashboard');
+    } catch (err) {
+      const message = err.response?.data?.message || "Invalid or expired magic link.";
+      setError(message);
+      setVerifyingToken(false);
+      setMode('login');
+      navigate('/login');
+    }
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -39,11 +82,8 @@ export default function Auth() {
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let width = 0;
-    let height = 0;
-    let frameId = null;
-    let pointerX = 0;
-    let pointerY = 0;
+    let width = 0; let height = 0;
+    let frameId = null; let pointerX = 0; let pointerY = 0;
 
     const particleCount = 140;
     const particles = Array.from({ length: particleCount }, () => ({
@@ -80,11 +120,7 @@ export default function Auth() {
         const driftY = Math.cos(t * 0.32 + p.seed) * 0.2;
         const parallaxX = pointerX * (0.45 + depthFactor * 1.05);
         const parallaxY = pointerY * (0.4 + depthFactor * 0.9);
-        const pt = project({
-          x: p.x + driftX + parallaxX,
-          y: p.y + driftY + parallaxY,
-          z: p.z,
-        });
+        const pt = project({ x: p.x + driftX + parallaxX, y: p.y + driftY + parallaxY, z: p.z });
 
         if (pt.x < -40 || pt.x > width + 40 || pt.y < -40 || pt.y > height + 40) continue;
 
@@ -122,10 +158,7 @@ export default function Auth() {
       pointerX = ((e.clientX - rect.left) / rect.width - 0.5) * 0.9;
       pointerY = ((e.clientY - rect.top) / rect.height - 0.5) * 0.75;
     };
-    const onPointerLeave = () => {
-      pointerX = 0;
-      pointerY = 0;
-    };
+    const onPointerLeave = () => { pointerX = 0; pointerY = 0; };
     container.addEventListener('pointermove', onPointerMove);
     container.addEventListener('pointerleave', onPointerLeave);
 
@@ -134,11 +167,8 @@ export default function Auth() {
       frameId = window.requestAnimationFrame(animate);
     };
 
-    if (prefersReduced) {
-      draw(0);
-    } else {
-      frameId = window.requestAnimationFrame(animate);
-    }
+    if (prefersReduced) draw(0);
+    else frameId = window.requestAnimationFrame(animate);
 
     return () => {
       if (frameId) cancelAnimationFrame(frameId);
@@ -155,83 +185,51 @@ export default function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setNotice('');
+    setLoading(true); setError(''); setNotice('');
 
     try {
       if (isForgot) {
         if (forgotMethod === 'emailOtp') {
           if (!otpSent) {
-            await sendPasswordResetOtp({
-              email: formData.email,
-              collegeId: formData.collegeId,
-            });
+            await sendPasswordResetOtp({ email: formData.email, collegeId: formData.collegeId });
             setOtpSent(true);
             setNotice('OTP sent. Check your email.');
+            setLoading(false);
             return;
           }
-
           await resetPasswordWithOtp({
-            email: formData.email,
-            collegeId: formData.collegeId,
-            otp: formData.otp,
-            newPassword: formData.newPassword,
+            email: formData.email, collegeId: formData.collegeId,
+            otp: formData.otp, newPassword: formData.newPassword,
           });
           setNotice('Password changed successfully. Please sign in.');
-          setMode('login');
-          setOtpSent(false);
-          setForgotMethod('emailOtp');
-          setFormData({
-            name: '',
-            email: formData.email,
-            password: '',
-            collegeId: '',
-            inviteCode: '',
-            otp: '',
-            resetCode: '',
-            newPassword: ''
-          });
+          setMode('login'); setOtpSent(false); setForgotMethod('emailOtp');
+          setFormData({ ...formData, otp: '', resetCode: '', newPassword: '' });
         } else {
           await resetPasswordWithCode({
             collegeId: formData.collegeId,
-            resetCode: formData.resetCode,
-            newPassword: formData.newPassword,
+            resetCode: formData.resetCode, newPassword: formData.newPassword,
           });
           setNotice('Password changed successfully. Please sign in.');
-          setMode('login');
-          setOtpSent(false);
-          setForgotMethod('emailOtp');
-          setFormData({
-            name: '',
-            email: '',
-            password: '',
-            collegeId: '',
-            inviteCode: '',
-            otp: '',
-            resetCode: '',
-            newPassword: ''
-          });
+          setMode('login'); setOtpSent(false); setForgotMethod('emailOtp');
+          setFormData({ ...formData, otp: '', resetCode: '', newPassword: '' });
         }
-      } else if (isLogin) {
-        const response = await login({ email: formData.email, password: formData.password });
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('profile', JSON.stringify(response.data));
-        window.location.href = '/dashboard';
-      } else {
-        await register(formData);
-        setNotice('Registration submitted. Wait for admin approval, then sign in.');
+      } else if (isSignupVerify) {
+        await verifySignupOtp({ email: formData.email, otp: formData.otp });
+        setNotice('Email verified! Account pending admin approval.');
         setMode('login');
-        setFormData({
-          name: '',
-          email: formData.email,
-          password: '',
-          collegeId: '',
-          inviteCode: '',
-          otp: '',
-          resetCode: '',
-          newPassword: ''
-        });
+      } else if (isLogin) {
+        if (magicLinkMode) {
+          await requestMagicLink({ email: formData.email });
+          setNotice('Magic link sent to your email. Check your inbox.');
+        } else {
+          const response = await login({ email: formData.email, password: formData.password });
+          localStorage.setItem('profile', JSON.stringify(response.data));
+          window.location.href = '/dashboard';
+        }
+      } else if (isSignup) {
+        await register(formData);
+        setNotice('OTP sent to your email. Please verify.');
+        setMode('signupVerify');
       }
     } catch (err) {
       const fieldError = err.response?.data?.errors?.[0]?.message;
@@ -239,7 +237,7 @@ export default function Auth() {
       const message = fieldError || err.response?.data?.message || "Connection failed. Please check your network.";
       if (isLogin && code === 'ACCOUNT_PENDING_APPROVAL') {
         setError('');
-        setNotice('Account created successfully but pending admin approval. Ask Admin/Head to approve your profile, then sign in.');
+        setNotice('Account pending admin approval. Ask Admin/Head to approve your profile.');
       } else {
         setError(message);
       }
@@ -248,205 +246,265 @@ export default function Auth() {
     }
   };
 
+  if (verifyingToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden font-sans auth-bg">
+         <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div ref={containerRef} className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden font-sans page-motion-c auth-bg">
+    <div ref={containerRef} className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden font-sans auth-bg">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/55 to-black/75" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black/90 pointer-events-none" />
 
       <motion.div 
         layout
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative w-full max-w-md z-10 section-motion section-motion-delay-1"
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        className="relative w-full max-w-[420px] z-10"
       >
-        <div className="relative p-10 rounded-[2.5rem] bg-transparent border-none shadow-none">
-          <header className="text-center mb-10">
+        <div className="bg-white border border-slate-200 shadow-sm-strong rounded-3xl p-8 sm:p-10 shadow-2xl overflow-hidden relative">
+          <div className="absolute top-0 inset-x-0 h-1 gradient-blue-purple opacity-50" />
+          
+          <header className="text-center mb-8">
             <motion.div 
-              initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-              className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center mx-auto mb-6 bg-white shadow-lg"
+              layoutId="logo"
+              className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center mx-auto mb-6 bg-white shadow-lg glow-blue p-1"
             >
               <img src="/cicr-logo.png" alt="CICR Logo" className="w-full h-full object-cover rounded-full" />
             </motion.div>
-            <h2 className="text-4xl text-white font-black tracking-tighter">
-              {isForgot ? (otpSent ? 'Set Password' : 'Reset Password') : (isLogin ? 'Sign In' : 'Join CICR')}
+            <h2 className="text-3xl text-slate-900 font-bold tracking-tight">
+              {isForgot ? (otpSent ? 'Set Password' : 'Reset Password') 
+                : isSignupVerify ? 'Verify Email' 
+                : (isLogin ? 'Welcome Back' : 'Create Account')}
             </h2>
-            <p className="text-gray-300 mt-3 text-sm font-medium tracking-wide uppercase">
-              {isForgot
-                ? (
-                    forgotMethod === 'emailOtp'
-                      ? (otpSent ? 'Enter OTP and new password' : 'Get OTP on your email')
-                      : 'Use admin-issued reset code'
-                  )
-                : (isLogin ? 'Welcome to CICR' : 'Create your CICR profile')}
+            <p className="text-slate-600 mt-2 text-sm font-medium">
+              {isForgot ? 'Securely recover your account'
+                : isSignupVerify ? 'Enter the OTP sent to your email'
+                : (isLogin ? 'Sign in to access your workspace' : 'Join the community')}
             </p>
           </header>
 
           <AnimatePresence mode="wait">
             {error && (
               <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl mb-8 flex items-center gap-3 text-xs font-semibold"
+                key="error"
+                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                className="bg-rose-500/10 border border-red-200 text-red-600 p-4 rounded-xl mb-6 flex items-start gap-3 text-sm"
               >
-                <AlertCircle size={18} />
-                {error}
+                <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                <span>{error}</span>
               </motion.div>
             )}
             {!error && notice && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-4 rounded-2xl mb-8 flex items-center gap-3 text-xs font-semibold"
+                key="notice"
+                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                className="bg-blue-500/10 border border-blue-300 text-blue-600 p-4 rounded-xl mb-6 flex items-start gap-3 text-sm"
               >
-                <AlertCircle size={18} />
-                {notice}
+                <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
+                <span>{notice}</span>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {!isLogin && !isForgot && (
+              
+              {/* === SIGNUP MODE === */}
+              {isSignup && (
                 <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-5"
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4"
                 >
                   <InputGroup icon={User} name="name" label="Full Name" placeholder="Full Name" value={formData.name} onChange={handleChange} />
-                  <InputGroup icon={Hash} name="collegeId" label="College ID" placeholder="College ID" value={formData.collegeId} onChange={handleChange} />
-                  <InputGroup icon={Ticket} name="inviteCode" label="Access Code" placeholder="Access Code*" value={formData.inviteCode} onChange={handleChange} />
+                  <InputGroup icon={KeyRound} name="collegeId" label="College ID" placeholder="Enrollment No." value={formData.collegeId} onChange={handleChange} />
+                  <InputGroup icon={Ticket} name="inviteCode" label="Access Code" placeholder="Invite Code" value={formData.inviteCode} onChange={handleChange} />
+                  <InputGroup icon={Mail} name="email" label="Email Address" type="email" placeholder="Email Address" value={formData.email} onChange={handleChange} />
+                  <InputGroup icon={Lock} name="password" label="Password" type="password" placeholder="Create Password" value={formData.password} onChange={handleChange} />
+                  
+                  {/* Password Strength Indicator */}
+                  {formData.password && (
+                    <div className="pt-1">
+                      <div className="flex gap-1 h-1.5 w-full">
+                        {[...Array(4)].map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={`flex-1 rounded-full transition-colors duration-300 ${
+                              i < strength 
+                                ? ['bg-rose-500', 'bg-orange-500', 'bg-amber-400', 'bg-emerald-500'][strength-1] 
+                                : 'bg-gray-700'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <div className="text-[10px] mt-1.5 text-slate-600 font-medium uppercase tracking-wider text-right">
+                        {['Weak', 'Fair', 'Good', 'Strong'][Math.max(0, strength - 1)] || 'Too Short'}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* === SIGNUP VERIFY MODE === */}
+              {isSignupVerify && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4"
+                >
+                  <InputGroup icon={Ticket} name="otp" label="Verification OTP" placeholder="6-digit OTP" value={formData.otp} onChange={handleChange} maxLength={6} />
+                </motion.div>
+              )}
+
+              {/* === LOGIN MODE === */}
+              {isLogin && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4"
+                >
+                  {/* Magic Link Toggle */}
+                  <div className="flex bg-slate-100 p-1 rounded-xl mb-4 relative z-0 border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setMagicLinkMode(false)}
+                      className={`flex-1 text-xs font-semibold uppercase tracking-wider py-2 rounded-lg transition-all z-10 ${!magicLinkMode ? 'text-slate-900' : 'text-slate-600 hover:text-slate-700'}`}
+                    >
+                      Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMagicLinkMode(true)}
+                      className={`flex-1 text-xs font-semibold uppercase tracking-wider py-2 rounded-lg transition-all z-10 flex items-center justify-center gap-1.5 ${magicLinkMode ? 'text-slate-900' : 'text-slate-600 hover:text-slate-700'}`}
+                    >
+                      <Wand2 size={12} />
+                      Magic Link
+                    </button>
+                    <motion.div 
+                      className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-500/20 border border-blue-300 rounded-lg -z-10"
+                      animate={{ left: magicLinkMode ? 'calc(50% + 2px)' : '4px' }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  </div>
+
+                  <InputGroup icon={Mail} name="email" label={magicLinkMode ? "Email Address" : "Email or College ID"} placeholder={magicLinkMode ? "name@example.com" : "Email or Enrollment No."} value={formData.email} onChange={handleChange} />
+                  
+                  <AnimatePresence>
+                    {!magicLinkMode && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <InputGroup icon={Lock} name="password" label="Password" type="password" placeholder="••••••••" value={formData.password} onChange={handleChange} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+
+              {/* === FORGOT PASSWORD MODE === */}
+              {isForgot && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => { setForgotMethod('emailOtp'); setOtpSent(false); }}
+                      className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        forgotMethod === 'emailOtp'
+                          ? 'bg-blue-500/20 text-blue-600 border border-blue-300'
+                          : 'text-slate-600 hover:text-slate-700'
+                      }`}
+                    >
+                      Email OTP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setForgotMethod('resetCode'); setOtpSent(false); }}
+                      className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        forgotMethod === 'resetCode'
+                          ? 'bg-blue-500/20 text-blue-600 border border-blue-300'
+                          : 'text-slate-600 hover:text-slate-700'
+                      }`}
+                    >
+                      Reset Code
+                    </button>
+                  </div>
+                  
+                  {forgotMethod === 'emailOtp' && !otpSent && (
+                    <InputGroup icon={Mail} name="email" label="Email Address" type="text" placeholder="Registered Email" value={formData.email} onChange={handleChange} />
+                  )}
+
+                  <InputGroup icon={KeyRound} name="collegeId" label="College ID" placeholder="Enrollment No." value={formData.collegeId} onChange={handleChange} />
+
+                  {forgotMethod === 'emailOtp' && otpSent && (
+                    <>
+                      <InputGroup icon={Ticket} name="otp" label="OTP" placeholder="6-digit OTP" value={formData.otp} onChange={handleChange} />
+                      <InputGroup icon={Lock} name="newPassword" label="New Password" type="password" placeholder="New Password" value={formData.newPassword} onChange={handleChange} />
+                    </>
+                  )}
+
+                  {forgotMethod === 'resetCode' && (
+                    <>
+                      <InputGroup icon={Ticket} name="resetCode" label="Reset Code" placeholder="Admin Code" value={formData.resetCode} onChange={handleChange} />
+                      <InputGroup icon={Lock} name="newPassword" label="New Password" type="password" placeholder="New Password" value={formData.newPassword} onChange={handleChange} />
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {(!isForgot || forgotMethod === 'emailOtp') && (
-              <InputGroup
-                icon={Mail}
-                name="email"
-                label={isLogin ? 'Email or College ID' : 'Email Address'}
-                type="text"
-                placeholder={isLogin ? "Email or College ID" : "Email Address"}
-                value={formData.email}
-                onChange={handleChange}
-              />
-            )}
-            {isForgot && (
-              <>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForgotMethod('emailOtp');
-                      setOtpSent(false);
-                      setNotice('');
-                      setError('');
-                    }}
-                    className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
-                      forgotMethod === 'emailOtp'
-                        ? 'border-blue-500/50 text-blue-200 bg-blue-500/10'
-                        : 'border-white/10 text-gray-300'
-                    }`}
-                  >
-                    Email OTP
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForgotMethod('resetCode');
-                      setOtpSent(false);
-                      setNotice('');
-                      setError('');
-                    }}
-                    className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
-                      forgotMethod === 'resetCode'
-                        ? 'border-blue-500/50 text-blue-200 bg-blue-500/10'
-                        : 'border-white/10 text-gray-300'
-                    }`}
-                  >
-                    Reset Code
-                  </button>
-                </div>
-                {forgotMethod === 'emailOtp' && (
-                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-                    <p className="text-xs font-black uppercase tracking-widest text-amber-200">
-                      Warning: Email OTP not available. Please use Reset Code.
-                    </p>
-                  </div>
-                )}
-                <InputGroup icon={Hash} name="collegeId" label="College ID" placeholder="College ID" value={formData.collegeId} onChange={handleChange} />
-              </>
-            )}
-
-            {!isForgot && (
-              <InputGroup icon={Lock} name="password" label="Password" type="password" placeholder="Password" value={formData.password} onChange={handleChange} />
-            )}
-
-            {isForgot && forgotMethod === 'emailOtp' && otpSent && (
-              <>
-                <InputGroup icon={Ticket} name="otp" label="OTP" placeholder="6-digit OTP" value={formData.otp} onChange={handleChange} />
-                <InputGroup icon={Lock} name="newPassword" label="New Password" type="password" placeholder="New Password" value={formData.newPassword} onChange={handleChange} />
-              </>
-            )}
-
-            {isForgot && forgotMethod === 'resetCode' && (
-              <>
-                <InputGroup icon={Ticket} name="resetCode" label="Reset Code" placeholder="Admin-issued reset code" value={formData.resetCode} onChange={handleChange} />
-                <InputGroup icon={Lock} name="newPassword" label="New Password" type="password" placeholder="New Password" value={formData.newPassword} onChange={handleChange} />
-              </>
-            )}
-
             <motion.button 
-              whileHover={{ scale: 1.005 }}
-              whileTap={{ scale: 0.992 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
-              disabled={loading}
-              className="w-full text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex justify-center items-center gap-2 mt-8 gradient-blue-purple"
+              disabled={loading || (isSignup && strength < 2)} // Require at least fair password
+              className="w-full text-slate-900 py-3.5 rounded-xl font-bold text-sm uppercase tracking-widest transition-all flex justify-center items-center gap-2 mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
+              {loading ? <Loader2 className="animate-spin w-5 h-5" /> : (
                 <>
-                  {isForgot
-                    ? (
-                        forgotMethod === 'emailOtp'
-                          ? (otpSent ? 'Change Password' : 'Send OTP')
-                          : 'Reset Password'
-                      )
-                    : (isLogin ? 'Authenticate' : 'Complete Entry')}
-                  <ArrowRight size={18} />
+                  {isForgot ? (forgotMethod === 'emailOtp' ? (otpSent ? 'Change Password' : 'Send OTP') : 'Reset Password')
+                    : isSignupVerify ? 'Verify & Continue'
+                    : isLogin ? (magicLinkMode ? 'Send Magic Link' : 'Sign In')
+                    : 'Create Account'}
+                  <ArrowRight size={16} />
                 </>
               )}
             </motion.button>
           </form>
 
-          <div className="text-center mt-10">
-            {isLogin && (
+          <div className="text-center mt-8 flex flex-col items-center gap-3">
+            {isLogin && !magicLinkMode && (
               <button
                 onClick={() => { setMode('forgot'); setOtpSent(false); setError(''); setNotice(''); }}
-                className="text-xs font-black uppercase tracking-[0.2em] text-gray-300 hover:text-blue-500 transition-all mr-6"
+                className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
               >
-                Forgot Password
+                Forgot Password?
               </button>
             )}
+            
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-700 to-transparent my-1" />
+
             <button
               onClick={() => {
-                if (isForgot) {
-                  setMode('login');
-                  setOtpSent(false);
-                  setForgotMethod('emailOtp');
-                } else {
-                  setMode(isLogin ? 'signup' : 'login');
-                }
-                setError('');
-                setNotice('');
+                setMode(isForgot || isSignupVerify || isSignup ? 'login' : 'signup');
+                setError(''); setNotice('');
               }}
-              className="text-lg mt-2 font-serif uppercase tracking-[0.2em] text-white hover:text-blue-500 transition-all"
+              className="text-sm font-semibold text-blue-400 hover:text-blue-600 transition-colors"
             >
-              {isForgot ? 'Return to Sign In' : (isLogin ? 'Join CICR' : 'Return to Sign In')}
+              {isForgot || isSignupVerify ? 'Back to Sign In' 
+               : isLogin ? "Don't have an account? Sign Up" 
+               : 'Already have an account? Sign In'}
             </button>
           </div>
         </div>
@@ -455,39 +513,27 @@ export default function Auth() {
   );
 }
 
-// Sub-component for Inputs to keep the main return clean
 function InputGroup({ icon: Icon, label, required = true, ...props }) {
   const fieldId = props.id || props.name;
 
   return (
     <div className="space-y-1.5">
-      {label ? (
-        <label htmlFor={fieldId} className="block text-xs font-semibold text-gray-300 tracking-wide">
+      {label && (
+        <label htmlFor={fieldId} className="block text-xs font-medium text-slate-600 ml-1">
           {label}
-          {required ? <span className="text-rose-300"> *</span> : null}
         </label>
-      ) : null}
+      )}
       <div className="relative group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
-          <Icon size={18} />
+        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors">
+          <Icon size={18} strokeWidth={2.5} />
         </div>
         <input
           required={required}
           id={fieldId}
           {...props}
-          className="w-full border border-white/8 p-4 pl-12 rounded-2xl text-white text-sm outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-600/10 transition-all placeholder:text-gray-400 glass"
+          className="w-full bg-slate-50 border border-slate-300/50 p-3.5 pl-11 rounded-xl text-slate-900 text-sm outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600"
         />
       </div>
     </div>
   );
 }
-
-// Simple Hash Icon since lucide-react might not export it directly as Hash in all versions
-const Hash = ({ size, className }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <line x1="4" y1="9" x2="20" y2="9"></line>
-    <line x1="4" y1="15" x2="20" y2="15"></line>
-    <line x1="10" y1="3" x2="8" y2="21"></line>
-    <line x1="16" y1="3" x2="14" y2="21"></line>
-  </svg>
-);
