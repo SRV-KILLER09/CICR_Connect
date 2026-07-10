@@ -1030,6 +1030,6 @@ exports.sendBulkEmail = async (req, res) => {
     return res.json({ success: true, message: `Email sent to ${emails.length} users.` });
   } catch (err) {
     console.error('❌ sendBulkEmail error:', err.message);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({ success: false, message: err.message || 'Server error while sending email' });
   }
 };
