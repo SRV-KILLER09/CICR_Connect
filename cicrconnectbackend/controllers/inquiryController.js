@@ -1,5 +1,5 @@
 const Inquiry = require('../models/Inquiry');
-const { createNotifications } = require('../utils/notificationHelper');
+const { createNotifications } = require('../utils/notificationService');
 const User = require('../models/User');
 
 exports.submitInquiry = async (req, res) => {
